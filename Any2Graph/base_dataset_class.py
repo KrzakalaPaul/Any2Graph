@@ -1,5 +1,5 @@
 class Dataset():
     
-    def __init__(self,config) -> None:
+    def __init__(self,config,split) -> None:
         pass
     

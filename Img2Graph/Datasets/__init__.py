@@ -1,1 +1,1 @@
-from .DatasetA import DatasetA
+from .Coloring import Coloring
