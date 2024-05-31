@@ -6,7 +6,7 @@ from time import perf_counter
 
 class Trainer():
     
-    def __init__(self,task:Task, dataset_train:Dataset, dataset_test:Dataset, config:dict):
+    def __init__(self, task:Task, dataset_train:Dataset, dataset_test:Dataset, config:dict):
         self.task = task
         self.dataset_train = dataset_train
         self.dataset_test = dataset_test
@@ -51,7 +51,8 @@ class Trainer():
 
                 # To device
                 tic_to_device = perf_counter()
-                inputs,padded_targets = self.task.to_device(inputs,padded_targets,device)
+                inputs = self.task.inputs_to_device(inputs,device)
+                padded_targets = padded_targets.to(device)
                 tac_to_device = perf_counter()
                 
                 # Forward 
