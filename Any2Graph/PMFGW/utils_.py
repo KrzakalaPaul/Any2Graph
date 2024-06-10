@@ -51,7 +51,7 @@ def init_matrix_quad_batch(A_logits,A,w,alpha,mask_self_loops=False):
         
         fC1 = alpha*f1(A_logits)
         
-        L = constC, fC1, hC1, hC2
+        L = constC, fC1, hC1, hC2, w
         
     return L 
 
@@ -67,7 +67,7 @@ def tensor_product_quad_batch(L,Gs,mask_self_loops=False):
         return U1TW2 + W1TU2 - V1TV2
     
     else:
-        constC, fC1, hC1, hC2 = L
+        constC, fC1, hC1, hC2, w = L
         return constC + bmv(fC1, bmv(Gs,w))[:,:,None]*w[:,None,:] - torch.bmm( torch.bmm(hC1,Gs), torch.permute(hC2,dims=(0,2,1)) )
 
 def tensor_product_quad(L,G,mask_self_loops=False):
@@ -78,7 +78,7 @@ def tensor_product_quad(L,G,mask_self_loops=False):
         V1TV2 = np.dot(np.dot(V1, G), V2.T)
         return U1TW2 + W1TU2 - V1TV2
     else:
-        constC, fC1, hC1, hC2 = L
+        constC, fC1, hC1, hC2, w = L
         return constC + np.outer(np.dot(fC1, np.dot(G,w)),w) - np.dot(np.dot(hC1, G), hC2.T)
     
 def line_search(M, L, Gprev, G, costprev, mask_self_loops=False):
@@ -122,20 +122,22 @@ def solver_quad_batch(M, L, max_iter, tol, max_iter_inner, Hungarian=False, mask
     cost_init = cost_init.cpu().detach().numpy()
     
     Gs = []
-    logs = []
+    avg_cg_iter = 0
     for k in range(B):
         if log:
-            G,lg = solver_quad(M[k],L[k],cost_init[k],max_iter,tol,max_iter_inner, mask_self_loops=mask_self_loops, log=log)
-            logs.append(lg)
+            Mk = M[k]
+            Lk = [matrix[k] for matrix in L]
+            G,log = solver_quad(Mk,Lk,cost_init[k],max_iter,tol,max_iter_inner, mask_self_loops=mask_self_loops, log=log)
+            avg_cg_iter += log['n_cg_iter']
         else:
-            G = solver_quad(M[k],L[k],cost_init[k],max_iter,tol,max_iter_inner, mask_self_loops=mask_self_loops, log=log)
+            G = solver_quad(Mk,Lk,cost_init[k],max_iter,tol,max_iter_inner, mask_self_loops=mask_self_loops, log=log)
         if Hungarian:
             G = hungarian(G)/n
         Gs.append(G)
     Gs = np.stack(Gs,0)
     Gs = torch.tensor(Gs)
     if log:
-        return Gs,logs
+        return Gs,{'avg_cg_iter':avg_cg_iter/B}
     return Gs
 
 

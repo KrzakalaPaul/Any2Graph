@@ -25,13 +25,15 @@ class PMFGW():
         
     def __call__(self,continuous_predictions, padded_targets):
         
+        B = len(continuous_predictions)
+        
         # Get predictions and targets
         
         h = padded_targets.h
         F = padded_targets.F
         A = padded_targets.A
         if self.FD:
-            padded_targets.F_fd = torch.bmm(F,A)
+            F_fd = torch.bmm(A,F)
         
         h_logits = continuous_predictions.h
         F_logits = continuous_predictions.F
@@ -49,7 +51,7 @@ class PMFGW():
         # Init Cost matrix F
         M_F = self.alpha_F*self.task.F_cost(F_logits,F)*weights[:,None,:]
         if self.FD:
-            M_F_fd = self.alpha_F_fd*self.task.F_fd_cost(F_fd_logits,padded_targets)*weights[:,None,:]
+            M_F_fd = self.alpha_F_fd*self.task.F_fd_cost(F_fd_logits,F_fd)*weights[:,None,:]
         else:
             M_F_fd = torch.zeros_like(M_F)
             
@@ -68,21 +70,21 @@ class PMFGW():
             
         # Forward
         
-        losses_h = torch.sum(T*M_weight,dim=(1,2))
-        losses_F = torch.sum(T*M_F,dim=(1,2))
-        losses_F_fd = torch.sum(T*M_F_fd,dim=(1,2))
+        losses_h = torch.sum(T*M_weight)/B
+        losses_F = torch.sum(T*M_F)/B
+        losses_F_fd = torch.sum(T*M_F_fd)/B
         LT = tensor_product_quad_batch(L, T,mask_self_loops=self.mask_self_loops)
-        losses_A = torch.sum(T*LT,dim=(1,2))
+        losses_A = torch.sum(T*LT)/B
         losses = losses_h + losses_F + losses_F_fd + losses_A
 
-        loss = torch.mean(losses)
+        loss = torch.sum(losses)
         
         log = {'loss (batch)': loss.item(),
-               'loss_F (batch)': torch.sum(losses_F).item()/self.alpha[0],
-               'loss_F (batch)': torch.sum(losses_F).item()/self.alpha[0], 
-               'loss_F (batch)': torch.sum(losses_F).item()/self.alpha[0],
-               'loss_F (batch)': torch.sum(losses_F).item()/self.alpha[0],
-               'avg_cg_iter (batch)': log_solver['avg_cg_iter'],
+               'loss h (batch)': losses_h.item()/(self.alpha_h+1e-10),
+               'loss F (batch)': losses_F.item()/(self.alpha_F+1e-10), 
+               'loss Fdiff (batch)': losses_F_fd.item()/(self.alpha_F_fd+1e-10),
+               'loss A (batch)': losses_A.item()/(self.alpha_A+1e-10),
+               'avg cg iter (batch)': log_solver['avg_cg_iter'],
                 }
                
         return loss,log

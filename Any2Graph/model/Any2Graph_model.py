@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch
 from .utils_ import Transformer, MLP
 from Any2Graph.graphs.custom_graphs_classes import BatchedContinuousGraphs
+from Any2Graph.base_encoder_class import Encoder
 from Any2Graph.base_task_class import Task
 
 class Decoder(nn.Module):
@@ -34,8 +35,8 @@ class Decoder(nn.Module):
         virtual_node = x[:,0,:]
         true_nodes = x[:,1:,:]
         
-        h_logits = self.NodeWeihead_hghtHead(true_nodes).squeeze()
-        F_logits = self.head_h(true_nodes)
+        h_logits = self.head_h(true_nodes).squeeze()
+        F_logits = self.head_F(true_nodes)
         
         if self.virtual_node:
             x = torch.concat([true_nodes,virtual_node.unsqueeze(1).repeat(1,self.Mmax,1)],dim=2)
@@ -47,7 +48,7 @@ class Decoder(nn.Module):
         A_logits = A_logits.squeeze()
             
         mask = ~torch.eye(self.Mmax,dtype=bool,device=x.device)
-        A_logits = A_logits*mask[None,:,:] - torch.eye(self.Mmax,dtype=bool,device=x.device) 
+        A_logits = A_logits*mask[None,:,:] - 1.*torch.eye(self.Mmax,dtype=bool,device=x.device) 
 
         if self.FD:
             F_fd_logits = self.head_F_fd(true_nodes)
@@ -97,5 +98,33 @@ class Any2Graph_Model(nn.Module):
             F_fd = self.task.F_fd_from_logits(F_fd_logits)
 
             continuous_predictions = BatchedContinuousGraphs(h = h, F = F, A = A, F_fd = F_fd)
+
+        return continuous_predictions
+
+
+class Constant_Model(nn.Module):
+    '''
+    For debbuging purposes
+    '''
+    
+    def __init__(self,
+                 task:Task,
+                 config:dict):
+        
+        super().__init__()
+        self.h = nn.Parameter(torch.randn(config['Mmax']))
+        self.F = nn.Parameter(torch.randn(config['Mmax'],config['node_feature_dim']))
+        self.F_fd = nn.Parameter(torch.randn(config['Mmax'],config['node_feature_dim']))
+        self.A = nn.Parameter(torch.randn(config['Mmax'],config['Mmax']))
+        
+    def forward(self,inputs,logits=False):
+        
+        Batchsize = inputs.shape[0]
+        
+        h_logits = torch.stack([self.h for _ in range(Batchsize)],dim=0)
+        F_logits = torch.stack([self.F for _ in range(Batchsize)],dim=0)
+        A_logits = torch.stack([(self.A + self.A.T)/2  for _ in range(Batchsize)],dim=0)
+        F_fd_logits = torch.stack([self.F_fd for _ in range(Batchsize)],dim=0)
+        continuous_predictions = BatchedContinuousGraphs(h = h_logits, F = F_logits, A = A_logits, F_fd = F_fd_logits)
 
         return continuous_predictions

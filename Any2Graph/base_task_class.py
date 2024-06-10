@@ -1,5 +1,5 @@
 from.base_dataset_class import Dataset
-from .model.Any2Graph_model import Encoder
+from .base_encoder_class import Encoder
 import torch
 from .utils import NoamOpt, batched_pairwise_KL, batched_pairwise_L2
 from .graphs.custom_graphs_classes import BatchedContinuousGraphs_from_list, ContinuousGraphs_from_padding
@@ -13,11 +13,12 @@ class Task():
     def __init__(self,config) -> None:
         self.config = config
     
-    def get_dataset(self,**kwargs):
+
+    def get_dataset(self,config,split):
         '''
         Get Dataset
         '''
-        return Dataset()
+        return Dataset(config,split)
     
     def get_encoder(self):
         '''
@@ -25,12 +26,19 @@ class Task():
         '''
         return Encoder(self.config)
     
+    def get_loss_fn(self):
+        '''
+        Get Loss Function
+        '''
+        return torch.nn.MSELoss()
+    
     def F_from_logits(self,F_logits):
         '''
         Get F from logits
         Default: softmax (change to identity if F is not one hot encoded)
         '''
-        return torch.softmax(F_logits,dim=-1)
+        #return torch.softmax(F_logits,dim=-1)
+        return F_logits
     
     def F_fd_from_logits(self,F_fd_logits):
         '''
@@ -45,7 +53,7 @@ class Task():
         Default: KL divergence
         i.e. M_kij = KL( \hat{F}_{ki}, F_{kj})
         '''
-        M = batched_pairwise_KL(F_logits,F)
+        M = batched_pairwise_L2(F_logits,F)
         return M
 
     def F_fd_cost(self,F_fd_logits,F_fd):

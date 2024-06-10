@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 from numpy import inf
 from Any2Graph import Task, Dataset
+from Any2Graph.PMFGW import PMFGW
 from time import perf_counter
 
 class Trainer():
@@ -11,7 +12,7 @@ class Trainer():
         self.dataset_train = dataset_train
         self.dataset_test = dataset_test
         self.config = config
-        self.loss_fn = None
+        self.loss_fn = PMFGW(task, config)
         
     def train(self, model:torch.nn.Module, save_path:str):
         
@@ -33,7 +34,7 @@ class Trainer():
                                       shuffle=True, 
                                       collate_fn=self.task.collate_fn)
         
-        optimizer = self.task.get_optimizer(model,self.config)
+        optimizer = self.task.get_optimizer(model)
 
         tic_start = perf_counter()
 
@@ -41,7 +42,7 @@ class Trainer():
         total_loss_time = 0
         best_test_loss = +inf
 
-        grad_step=0
+        grad_step = 0
 
         while grad_step < max_grad_step:
             
@@ -59,6 +60,14 @@ class Trainer():
                 tic_forward = perf_counter()
                 continuous_predictions = model(inputs)
                 tac_forward = perf_counter()
+                
+                ########
+                print(continuous_predictions.h[0])
+                print(continuous_predictions.A[0])
+                
+                print(padded_targets.h[0])
+                print(padded_targets.A[0])
+                ########
                 
                 # Compute Loss
                 tic_loss = perf_counter()
@@ -101,13 +110,13 @@ class Trainer():
 
                     tic_eval = perf_counter()
                     
-                    log_test = eval(model,
-                                    dataloader_test
-                                    )
+                    log_test = self.eval(model,
+                                         dataloader_test
+                                         )
                     
-                    log_train = eval(model,
-                                    dataloader_train
-                                    )
+                    log_train = self.eval(model,
+                                         dataloader_train
+                                         )
                     
                     for key in log_test:
                         log[key + ' (test set)'] = log_test[key]
@@ -131,3 +140,46 @@ class Trainer():
                 grad_step+=1
                 if grad_step>max_grad_step:
                     break
+                
+                
+    def eval(self,model,dataloader,n_samples=2000):
+        
+        model.eval()
+        device = self.config['device']
+        
+        size = 0
+        log = {'loss': 0,
+               'loss h': 0,
+               'loss F': 0, 
+               'loss Fdiff': 0,
+               'loss A': 0,
+               'avg cg iter': 0,
+                }
+        
+        for inputs, padded_targets in dataloader:
+            
+            # To device
+            inputs = self.task.inputs_to_device(inputs,device)
+            padded_targets = padded_targets.to(device)
+            
+            # Forward 
+            continuous_predictions = model(inputs)
+
+            # Compute Loss
+            loss, log_batch = self.loss_fn(continuous_predictions, padded_targets)
+
+            for key in log:
+                batchsize = len(padded_targets)
+                log[key] += log_batch[key+' (batch)']*batchsize
+            
+                    
+            size += len(inputs)
+            if size>n_samples:
+                break
+
+        for key in log:
+            log[key] = log[key]/size
+        
+        model.train()
+        return log
+            

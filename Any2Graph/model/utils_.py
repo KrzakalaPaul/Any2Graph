@@ -42,12 +42,6 @@ class Transformer(nn.Module):
         
         self.query_embed = nn.Parameter(torch.rand(Mmax+1, model_dim))
         
-        self.params = {'Mmax':Mmax,
-                       'model_dim':model_dim,
-                       'num_layer':num_layer,
-                       'nhead':nhead,
-                       'dropout':dropout}
-
         self._reset_parameters()
         
 
