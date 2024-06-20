@@ -1,5 +1,5 @@
 from Any2Graph.base_task_class import Task
-from .Coloring import Coloring
+from .Coloring.Coloring_Dataset import Coloring
 from .Img2Graph_Encoder import EncoderCNN
 from Any2Graph.utils import batched_pairwise_L2, batched_pairwise_KL
 from Any2Graph.graphs.custom_graphs_classes import BatchedContinuousGraphs_from_list, ContinuousGraphs_from_padding
