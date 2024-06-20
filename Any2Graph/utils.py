@@ -26,7 +26,10 @@ class NoamOpt:
         if step is None:
             step = self._step
         if step > self.warmup:
-            return self.base_lr * (step/self.warmup)  ** (-0.5)
+            if self.warmup == 0:
+                return self.base_lr
+            else:
+                return self.base_lr * (step/self.warmup)  ** (-0.5)
         return step*self.base_lr/self.warmup
     
 def get_std_opt(model,base_lr,warmup):

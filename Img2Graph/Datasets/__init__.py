@@ -1,1 +1,0 @@
-from .Coloring import Coloring

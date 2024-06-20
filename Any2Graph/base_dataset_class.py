@@ -4,9 +4,14 @@ class Dataset():
     
     def __init__(self,config,split) -> None:
         self.x = torch.rand(10)
-        F = torch.rand(3,2)
-        A = torch.rand(3,3)
-        A = torch.where((A+A.T)/2>0.5,1,0)
+        F = torch.tensor([[-1,-1],
+                          [0,0],
+                          [1,1],
+                          [1,1]],dtype=torch.float32)
+        A = torch.tensor([[0,0,1,0],
+                          [0,0,1,0],
+                          [1,1,0,1],
+                          [0,0,1,0]],dtype=torch.float32)
         self.y = {'F': F,'A': A}
 
     

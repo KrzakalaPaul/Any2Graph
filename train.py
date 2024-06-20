@@ -1,14 +1,13 @@
 from Any2Graph import Trainer, Task
 from Any2Graph.model import Any2Graph_Model, Constant_Model
 
-
 config_optim = {'device':'cuda', 
                 'batchsize': 128, 
                 'max_grad_step': 100000, 
                 'max_grad_norm': 1, 
                 'n_eval_interval': 1000,
                 'lr':1e-1,
-                'warmup': 1,
+                'warmup': 0,
                 }
 
 config_model = {'Mmax': 4,
@@ -26,14 +25,14 @@ config_model = {'Mmax': 4,
 config_loss = {'max_iter': 20,
                'tol': 1e-5,
                'max_iter_inner': 1000,
-               'alpha_h': 1,
-               'alpha_F': 1,
-               'alpha_F_fd': 1,
+               'alpha_h': 5,
+               'alpha_F': 5,
+               'alpha_F_fd': 0,
                'alpha_A': 1,
                'FD': False,
                'Hungarian': False,
-               'mask_self_loops': False,
-               'linear_matching': False,
+               'mask_self_loops': True,
+               'linear_matching': True,
                 }                            
 
 config = config_optim | config_model | config_loss

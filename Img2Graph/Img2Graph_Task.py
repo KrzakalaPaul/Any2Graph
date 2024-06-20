@@ -1,38 +1,39 @@
-from.base_dataset_class import Dataset
-from .base_encoder_class import Encoder
-import torch
-from .utils import NoamOpt, batched_pairwise_KL, batched_pairwise_L2
-from .graphs.custom_graphs_classes import BatchedContinuousGraphs_from_list, ContinuousGraphs_from_padding
+from Any2Graph.base_task_class import Task
+from .Coloring import Coloring
+from .Img2Graph_Encoder import EncoderCNN
+from Any2Graph.utils import batched_pairwise_L2, batched_pairwise_KL
+from Any2Graph.graphs.custom_graphs_classes import BatchedContinuousGraphs_from_list, ContinuousGraphs_from_padding
+import torch 
 
-class Task():
-    '''
-    You must subclass this class in order to use Any2Graph.
-    All methods must be implemented.
-    '''
+class Img2Graph(Task):
     
     def __init__(self,config) -> None:
         self.config = config
-    
-
+        
     def get_dataset(self,config,split):
         '''
         Get Dataset
         '''
-        return Dataset(config,split)
+        return Coloring(config,split)
     
     def get_encoder(self):
         '''
         Get Encoder
         '''
-        return Encoder(self.config)
+        return EncoderCNN(self.config)
+    
+    def get_loss_fn(self):
+        '''
+        Get Loss Function
+        '''
+        return torch.nn.MSELoss()
     
     def F_from_logits(self,F_logits):
         '''
         Get F from logits
         Default: softmax (change to identity if F is not one hot encoded)
         '''
-        #return torch.softmax(F_logits,dim=-1)
-        return F_logits
+        return torch.softmax(F_logits,dim=-1)
     
     def F_fd_from_logits(self,F_fd_logits):
         '''
@@ -47,7 +48,7 @@ class Task():
         Default: KL divergence
         i.e. M_kij = KL( \hat{F}_{ki}, F_{kj})
         '''
-        M = batched_pairwise_L2(F_logits,F)
+        M = batched_pairwise_KL(F_logits,F)
         return M
 
     def F_fd_cost(self,F_fd_logits,F_fd):
@@ -58,12 +59,6 @@ class Task():
         '''
         M = batched_pairwise_L2(F_fd_logits,F_fd)
         return M
-    
-    def get_optimizer(self,model):
-        '''
-        Get Optimizer
-        '''
-        return NoamOpt(self.config['lr'],self.config['warmup'],torch.optim.Adam(model.parameters(),lr=0,betas=(0.9, 0.98),eps=1e-9))
     
     def collate_fn(self,batch):
         '''

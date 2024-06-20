@@ -134,6 +134,8 @@ def solver_quad_batch(M, L, max_iter, tol, max_iter_inner, Hungarian=False, mask
         if Hungarian:
             G = hungarian(G)/n
         Gs.append(G)
+    print('MATCHING')
+    print(Gs[0])
     Gs = np.stack(Gs,0)
     Gs = torch.tensor(Gs)
     if log:

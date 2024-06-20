@@ -4,6 +4,8 @@ from numpy import inf
 from Any2Graph import Task, Dataset
 from Any2Graph.PMFGW import PMFGW
 from time import perf_counter
+import numpy as np
+np.set_printoptions(precision=2,suppress=True)
 
 class Trainer():
     
@@ -62,11 +64,15 @@ class Trainer():
                 tac_forward = perf_counter()
                 
                 ########
-                print(continuous_predictions.h[0])
-                print(continuous_predictions.A[0])
+                print('PREDICTIONS')
+                print(torch.sigmoid(continuous_predictions.h[0]).detach().cpu().numpy())
+                print(continuous_predictions.F[0].detach().cpu().numpy())
+                print(torch.sigmoid(continuous_predictions.A[0]).detach().cpu().numpy())
                 
-                print(padded_targets.h[0])
-                print(padded_targets.A[0])
+                print('TARGETS')
+                print(padded_targets.h[0].detach().cpu().numpy())
+                print(padded_targets.F[0].detach().cpu().numpy())
+                print(padded_targets.A[0].detach().cpu().numpy())
                 ########
                 
                 # Compute Loss

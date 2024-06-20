@@ -1,1 +1,1 @@
-from .Img2Graph import Img2Graph
+from .Img2Graph_Task import Img2Graph
