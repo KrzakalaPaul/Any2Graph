@@ -6,6 +6,7 @@ from Any2Graph.PMFGW import PMFGW
 from time import perf_counter
 import numpy as np
 np.set_printoptions(precision=2,suppress=True)
+import wandb
 
 class Trainer():
     
@@ -18,6 +19,17 @@ class Trainer():
         
     def train(self, model:torch.nn.Module, save_path:str):
         
+        
+        if self.config['wandb']:
+            wandb.init(project="Any2Graph",
+                            tags=['debugging'],
+                            config=self.config)
+            if self.config['run_name'] != None:
+                wandb.run.name = self.config['run_name']
+            else:
+                self.config['run_name'] = wandb.run.name
+                
+            
         device = self.config['device']
         batchsize=self.config['batchsize']
         max_grad_step = self.config['max_grad_step']
@@ -25,6 +37,7 @@ class Trainer():
         n_eval_interval  = self.config['n_eval_interval']
 
         model = model.to(device)
+        model.train()
 
         dataloader_train = DataLoader(self.dataset_train, 
                                       batch_size=batchsize, 
@@ -33,7 +46,7 @@ class Trainer():
         
         dataloader_test = DataLoader(self.dataset_test, 
                                       batch_size=batchsize, 
-                                      shuffle=True, 
+                                      shuffle=False, 
                                       collate_fn=self.task.collate_fn)
         
         optimizer = self.task.get_optimizer(model)
@@ -49,7 +62,7 @@ class Trainer():
         while grad_step < max_grad_step:
             
             for inputs, padded_targets, indices in dataloader_train:
-            
+                
                 tic_gradient_step = perf_counter()
 
                 # To device
@@ -60,19 +73,19 @@ class Trainer():
                 
                 # Forward 
                 tic_forward = perf_counter()
-                continuous_predictions = model(inputs)
+                continuous_predictions = model(inputs,logits=True)
                 tac_forward = perf_counter()
                 
                 ########
-                print('PREDICTIONS')
-                print(torch.sigmoid(continuous_predictions.h[0]).detach().cpu().numpy())
-                print(continuous_predictions.F[0].detach().cpu().numpy())
-                print(torch.sigmoid(continuous_predictions.A[0]).detach().cpu().numpy())
+                #print('PREDICTIONS')
+                #print(torch.sigmoid(continuous_predictions.h[0]).detach().cpu().numpy())
+                #print(continuous_predictions.F[0].detach().cpu().numpy())
+                #print(torch.sigmoid(continuous_predictions.A[0]).detach().cpu().numpy())
                 
-                print('TARGETS')
-                print(padded_targets.h[0].detach().cpu().numpy())
-                print(padded_targets.F[0].detach().cpu().numpy())
-                print(padded_targets.A[0].detach().cpu().numpy())
+                #print('TARGETS')
+                #print(padded_targets.h[0].detach().cpu().numpy())
+                #print(padded_targets.F[0].detach().cpu().numpy())
+                #print(padded_targets.A[0].detach().cpu().numpy())
                 ########
                 
                 # Compute Loss
@@ -142,7 +155,11 @@ class Trainer():
                 
                 
                 # End Gradient Step
-                print(log)
+                if self.config['wandb']:
+                    wandb.log(log)
+                else:
+                    print('')
+                    print(log)
                 grad_step+=1
                 if grad_step>max_grad_step:
                     break

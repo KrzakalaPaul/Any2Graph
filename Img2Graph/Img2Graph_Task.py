@@ -14,7 +14,7 @@ class Img2Graph(Task):
         
         if dataset == 'ColoringSmall':
             self.subset = 'small'
-            self.input_shape = (3,16,16)
+            self.input_shape = (3,32,32)
         elif dataset == 'ColoringMedium':
             self.subset = 'medium'
             self.input_shape = (3,32,32)
@@ -29,7 +29,7 @@ class Img2Graph(Task):
         '''
         Get Dataset
         '''
-        return ColoringDataset(root_path='Img2Graph/Coloring/data/',subset=self.subset,split=split,augment_data=False,dataset_size=config['dataset_size'])
+        return ColoringDataset(root_path='Img2Graph/Coloring/data/',subset=self.subset,split=split,augment_data=config['augment_data'],dataset_size=config['dataset_size'])
     
     def get_encoder(self):
         '''
@@ -37,12 +37,6 @@ class Img2Graph(Task):
         '''
 
         return TroncatedResNet(model_dim=self.config['model_dim'],input_shape=self.input_shape,positionnal_encodings='learned')
-    
-    def get_loss_fn(self):
-        '''
-        Get Loss Function
-        '''
-        return torch.nn.MSELoss()
     
     def F_from_logits(self,F_logits):
         '''

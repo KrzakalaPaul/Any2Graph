@@ -165,4 +165,5 @@ cython_debug/
 
 # Ignore all folders named data
 **/data/
+**/wandb/
 

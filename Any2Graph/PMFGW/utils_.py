@@ -83,7 +83,7 @@ def tensor_product_quad(L,G,mask_self_loops=False):
     
 def line_search(M, L, Gprev, G, costprev, mask_self_loops=False):
     delta_G = G-Gprev
-    dot = tensor_product_quad(L,G,mask_self_loops=mask_self_loops)
+    dot = tensor_product_quad(L,delta_G,mask_self_loops=mask_self_loops)
     a = np.sum(delta_G*dot)
     b = np.sum(M * delta_G) + 2*np.sum(dot * Gprev)
     t = solve_1d_linesearch_quad(a,b)
@@ -134,8 +134,6 @@ def solver_quad_batch(M, L, max_iter, tol, max_iter_inner, Hungarian=False, mask
         if Hungarian:
             G = hungarian(G)/n
         Gs.append(G)
-    print('MATCHING')
-    print(Gs[0])
     Gs = np.stack(Gs,0)
     Gs = torch.tensor(Gs)
     if log:

@@ -19,16 +19,46 @@ class Decoder(nn.Module):
         self.Mmax = config['Mmax']
         self.FD = config['FD']
         
+        '''
         self.head_h = MLP(input_dim=model_dim,hidden_dim=4*model_dim,output_dim=1,num_layers=MLP_layers,dropout=dropout)
+        
         self.head_F = MLP(input_dim=model_dim,hidden_dim=4*model_dim,output_dim=node_feature_dim,num_layers=MLP_layers,dropout=dropout)
         
         input_dim1 = 2*model_dim if self.virtual_node else model_dim
         self.head_A_1 = MLP(input_dim=input_dim1,hidden_dim=4*model_dim,output_dim=model_dim,num_layers=MLP_layers,dropout=dropout)
         input_dim2 = model_dim 
-        self.head_A_2 = MLP(input_dim=input_dim2,hidden_dim=4*model_dim,output_dim=1,num_layers=MLP_layers,dropout=dropout)         
+        self.head_A_2 = MLP(input_dim=input_dim2,hidden_dim=4*model_dim,output_dim=1,num_layers=MLP_layers,dropout=dropout)    
         
         if self.FD is not None:
             self.head_F_fd = MLP(input_dim=model_dim,hidden_dim=4*model_dim,output_dim=node_feature_dim,num_layers=MLP_layers,dropout=dropout)
+        '''
+        
+        self.head_h = nn.Linear(model_dim,1)
+        self.head_F = nn.Linear(model_dim,node_feature_dim)
+        
+        input_dim1 = 2*model_dim if self.virtual_node else model_dim
+        self.head_A_1 = nn.Sequential(nn.Linear(input_dim1,2*model_dim),
+                                        nn.ReLU(),
+                                        nn.Dropout(p=dropout),
+                                        nn.Linear(2*model_dim,model_dim),
+                                        nn.ReLU(),
+                                        nn.Dropout(p=dropout),
+                                        nn.Linear(model_dim,model_dim),
+                                        )
+                                        
+        input_dim2 = model_dim 
+        self.head_A_2 = nn.Sequential(nn.Linear(input_dim2,model_dim),
+                                    nn.ReLU(),
+                                    nn.Dropout(p=dropout),
+                                    nn.Linear(model_dim,model_dim//2),
+                                    nn.ReLU(),
+                                    nn.Dropout(p=dropout),
+                                    nn.Linear(model_dim//2,1)    
+                                    )           
+        if self.FD is not None:
+            self.head_F_fd = nn.Linear(model_dim,node_feature_dim)
+        
+        
 
     def forward(self,x:torch.Tensor):
 
@@ -81,7 +111,7 @@ class Any2Graph_Model(nn.Module):
         self.decoder = Decoder(config)
 
 
-    def forward(self,inputs,logits=False):
+    def forward(self,inputs,logits=True):
         
         set_of_features,mask,pos_embed = self.encoder(inputs)
         set_of_nodes = self.transformer(set_of_features,mask,pos_embed)
@@ -117,7 +147,7 @@ class Constant_Model(nn.Module):
         self.F_fd = nn.Parameter(torch.randn(config['Mmax'],config['node_feature_dim']))
         self.A = nn.Parameter(torch.randn(config['Mmax'],config['Mmax']))
         
-    def forward(self,inputs,logits=False):
+    def forward(self,inputs,logits=True):
         
         Batchsize = inputs.shape[0]
         
