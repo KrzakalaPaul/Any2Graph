@@ -7,6 +7,8 @@ from time import perf_counter
 import numpy as np
 np.set_printoptions(precision=2,suppress=True)
 import wandb
+import os
+import json
 
 class Trainer():
     
@@ -29,6 +31,10 @@ class Trainer():
             else:
                 self.config['run_name'] = wandb.run.name
                 
+        if save_path != None:
+            os.makedirs(save_path, exist_ok=True)
+            with open(save_path+'args.txt', 'w') as f:
+                json.dump(self.config, f, indent=2)
             
         device = self.config['device']
         batchsize=self.config['batchsize']
@@ -75,18 +81,6 @@ class Trainer():
                 tic_forward = perf_counter()
                 continuous_predictions = model(inputs,logits=True)
                 tac_forward = perf_counter()
-                
-                ########
-                #print('PREDICTIONS')
-                #print(torch.sigmoid(continuous_predictions.h[0]).detach().cpu().numpy())
-                #print(continuous_predictions.F[0].detach().cpu().numpy())
-                #print(torch.sigmoid(continuous_predictions.A[0]).detach().cpu().numpy())
-                
-                #print('TARGETS')
-                #print(padded_targets.h[0].detach().cpu().numpy())
-                #print(padded_targets.F[0].detach().cpu().numpy())
-                #print(padded_targets.A[0].detach().cpu().numpy())
-                ########
                 
                 # Compute Loss
                 tic_loss = perf_counter()
@@ -144,10 +138,10 @@ class Trainer():
                     if save_path != None:
                         if log_test['loss'] < best_test_loss:
                             best_test_loss = log_test['loss']
-                            torch.save(model.state_dict(),save_path+'/best_model')
-                            torch.save(model.state_dict(),save_path+'/latest_model')
+                            torch.save(model.state_dict(),save_path+'best_model')
+                            torch.save(model.state_dict(),save_path+'latest_model')
                         else:
-                            torch.save(model.state_dict(),save_path+'/latest_model')
+                            torch.save(model.state_dict(),save_path+'latest_model')
                         
                     tac_eval = perf_counter()
 
