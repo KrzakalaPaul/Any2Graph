@@ -17,14 +17,16 @@ class ContinuousGraph():
         return self
     
     
-def ContinuousGraphs_from_padding(F,A,Mmax):
+def ContinuousGraphs_from_padding(F,A,Mmax,F_fd=None):
     m = len(F)
     h = torch.ones(m,device=F.device,dtype=F.dtype)
     h = torch.nn.functional.pad(h,(0,Mmax-m))
     F = torch.nn.functional.pad(F,(0,0,0,Mmax-m))
+    if F_fd is not None:
+        F_fd = torch.nn.functional.pad(F_fd,(0,0,0,Mmax-m))
     A = torch.nn.functional.pad(A,(0,Mmax-m,0,Mmax-m))
     
-    return ContinuousGraph(h,F,A)
+    return ContinuousGraph(h,F,A,F_fd=F_fd)
     
 class BatchedContinuousGraphs():
     

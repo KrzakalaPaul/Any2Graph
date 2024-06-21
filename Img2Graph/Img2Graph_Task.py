@@ -1,6 +1,6 @@
 from Any2Graph.base_task_class import Task
-from .Coloring.Coloring_Dataset import Coloring
-from .Img2Graph_Encoder import EncoderCNN
+from .Coloring.Coloring_Dataset import ColoringDataset
+from .Img2Graph_Encoder import TroncatedResNet
 from Any2Graph.utils import batched_pairwise_L2, batched_pairwise_KL
 from Any2Graph.graphs.custom_graphs_classes import BatchedContinuousGraphs_from_list, ContinuousGraphs_from_padding
 import torch 
@@ -10,17 +10,33 @@ class Img2Graph(Task):
     def __init__(self,config) -> None:
         self.config = config
         
+        dataset = config['dataset']
+        
+        if dataset == 'ColoringSmall':
+            self.subset = 'small'
+            self.input_shape = (3,16,16)
+        elif dataset == 'ColoringMedium':
+            self.subset = 'medium'
+            self.input_shape = (3,32,32)
+        elif dataset == 'ColoringLarge':
+            self.subset = 'large'
+            self.input_shape = (3,32,32)
+        elif dataset == 'ColoringMicro':
+            self.subset = 'micro'
+            self.input_shape = (3,32,32)
+        
     def get_dataset(self,config,split):
         '''
         Get Dataset
         '''
-        return Coloring(config,split)
+        return ColoringDataset(root_path='Img2Graph/Coloring/data/',subset=self.subset,split=split,augment_data=False,dataset_size=config['dataset_size'])
     
     def get_encoder(self):
         '''
         Get Encoder
         '''
-        return EncoderCNN(self.config)
+
+        return TroncatedResNet(model_dim=self.config['model_dim'],input_shape=self.input_shape,positionnal_encodings='learned')
     
     def get_loss_fn(self):
         '''
@@ -59,27 +75,4 @@ class Img2Graph(Task):
         '''
         M = batched_pairwise_L2(F_fd_logits,F_fd)
         return M
-    
-    def collate_fn(self,batch):
-        '''
-        Collate Function
-        '''
-        inputs = []
-        padded_targets = []
-        for x,y in batch:
-            inputs.append(x)
-            padded_targets.append(ContinuousGraphs_from_padding(y['F'],y['A'],self.config['Mmax']))
-        inputs = torch.stack(inputs,dim=0)
-        padded_targets = BatchedContinuousGraphs_from_list(padded_targets)
-        return inputs, padded_targets
 
-    def inputs_to_device(self,inputs,device):
-        '''
-        Send inputs to device
-        Ex for text: 
-        tokens, mask = inputs
-        return tokens.to(device), mask.to(device)
-        '''
-        return inputs.to(device)
-        
-        

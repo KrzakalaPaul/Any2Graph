@@ -180,24 +180,21 @@ if __name__ == '__main__':
         '''
     ### Generate datasets
     
-
-    '''
     import os
     
     name = 'coloring_small'
     sampler = ColoringSampler(Mmin=4,
                               Mmax=10,
                               node_weight_treshold=3,
-                              edge_weight_treshold=3)
+                              edge_weight_treshold=3,
+                              )
     
     if not os.path.exists('data/'+name):
         os.mkdir('data/'+name)
     
 
-    for split in ['test','valid']:
+    for split,n_samples in zip(['test','valid','train'],[10,10,500]):
 
-        n_samples = 5000
-        
         folder = 'data/'+name+'/'+split
         
         if not os.path.exists(folder):
@@ -216,6 +213,3 @@ if __name__ == '__main__':
         images = np.stack(images,0)
         np.save(folder+'/images.npy',images)
         torch.save(graphs,folder+'/graphs' )
-    '''
-    
-    

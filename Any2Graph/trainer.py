@@ -48,7 +48,7 @@ class Trainer():
 
         while grad_step < max_grad_step:
             
-            for inputs, padded_targets in dataloader_train:
+            for inputs, padded_targets, indices in dataloader_train:
             
                 tic_gradient_step = perf_counter()
 
@@ -162,7 +162,7 @@ class Trainer():
                'avg cg iter': 0,
                 }
         
-        for inputs, padded_targets in dataloader:
+        for inputs, padded_targets, indices in dataloader:
             
             # To device
             inputs = self.task.inputs_to_device(inputs,device)

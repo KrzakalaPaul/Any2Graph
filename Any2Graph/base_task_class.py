@@ -71,12 +71,14 @@ class Task():
         '''
         inputs = []
         padded_targets = []
-        for x,y in batch:
+        indices = []
+        for x,y,idx in batch:
             inputs.append(x)
+            indices.append(idx)
             padded_targets.append(ContinuousGraphs_from_padding(y['F'],y['A'],self.config['Mmax']))
         inputs = torch.stack(inputs,dim=0)
         padded_targets = BatchedContinuousGraphs_from_list(padded_targets)
-        return inputs, padded_targets
+        return inputs, padded_targets, indices
 
     def inputs_to_device(self,inputs,device):
         '''
