@@ -41,7 +41,7 @@ config_loss = {'max_iter': 20,
                'alpha_A': 1,
                'FD': True,
                'Hungarian': False,
-               'mask_self_loops': False,
+               'mask_self_loops': True,
                'linear_matching': False,
                 }                            
 
