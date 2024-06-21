@@ -31,9 +31,10 @@ class ColoringDataset(Dataset):
         print(f'...graphs loaded, it took {tac-tic:.2f}')
         
         # TRONCATE DATASET FOR EXP
-        self.images = self.images[:dataset_size]
-        self.graphs = self.graphs[:dataset_size]
-        
+        if dataset_size > 0:
+            self.images = self.images[:dataset_size]
+            self.graphs = self.graphs[:dataset_size]
+            
         self.dataset_size = len(self.images)
    
         self.sizes = []

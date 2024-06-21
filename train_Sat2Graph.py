@@ -1,10 +1,10 @@
 from Any2Graph import Trainer, Any2Graph_Model
-from Img2Graph import Img2Graph
+from Sat2Graph import Sat2Graph
 
 
 ### ------------------------ LOAD CONFIG ------------------------ ###
 
-config_run = {'dataset': 'ColoringMedium',
+config_run = {'dataset': 'TOULOUSE',
                'dataset_size': -1,
                'wandb': True,
                'run_name': None,
@@ -23,8 +23,11 @@ config_optim = {'device':'cuda',
 config_model = {'Mmax': 15,
                 'model_dim': 256,
                 'dropout': 0.,
-                'node_feature_dim': 4,
-                'MLP_layers': 3,
+                'node_feature_dim': 2,
+                'MLP_h_layers': 1,
+                'MLP_F_layers': 1,
+                'MLP_F_fd_layers': 1,
+                'MLP_A_layers': 3,
                 'virtual_node': True,
                 'transformer_layers': 4,
                 'transformer_heads': 4,
@@ -49,7 +52,7 @@ config = config_run | config_optim | config_model | config_loss
 
 ### ------------------------ LOAD TASK ------------------------ ###
 
-task = Img2Graph(config)
+task = Sat2Graph(config)
 
 ### ------------------------ LOAD DATASET ------------------------ ###
 

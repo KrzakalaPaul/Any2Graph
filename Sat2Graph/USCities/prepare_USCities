@@ -246,10 +246,10 @@ for x in range(180):
         indrange_test.append(x)
 
 if __name__ == "__main__":
-    root_dir = "./20cities/"
+    root_dir = "./data/20cities/"
 
     image_id = 1
-    train_path = './20cities/train_data/'
+    train_path = './data/20cities/train_data/'
     if not os.path.isdir(train_path):
         os.makedirs(train_path)
         os.makedirs(train_path+'/seg')
@@ -289,7 +289,7 @@ if __name__ == "__main__":
 
     
     image_id = 1
-    test_path = './20cities/test_data/'
+    test_path = './data/20cities/test_data/'
     if not os.path.isdir(test_path):
         os.makedirs(test_path)
         os.makedirs(test_path+'/seg')

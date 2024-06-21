@@ -15,13 +15,13 @@ from  torchvision.transforms.functional import rotate,hflip
 from random import choice
 from math import cos,sin,pi
 
-class ToulouseRoadNetworkDataset(Dataset):
+class TOULOUSE_Dataset(Dataset):
     r"""
     Generates a subclass of the PyTorch torch.utils.data.Dataset class
     """
     
-    def __init__(self, root_path="dataset/", split="valid",
-                 max_prev_node=4, step=0.001, use_raw_images=False, return_coordinates=False,augment=False,data_set_size=0):
+    def __init__(self, root_path='Sat2Graph/TOULOUSE/data/', split="valid",
+                 max_prev_node=4, step=0.001, use_raw_images=False, return_coordinates=False,augment_data=False,dataset_size=-1):
         r"""
         
         :param root_path: root dataset path
@@ -50,7 +50,7 @@ class ToulouseRoadNetworkDataset(Dataset):
         self.x_coord = x_coord
         self.graphs = LinearizedGraph_To_Graph(x_adj=x_adj,x_coord=x_coord)
         self.map_coordinates = map_coordinates
-        self.augment = augment
+        self.augment = augment_data
 
         print(f"Started loading the images...")
         
@@ -59,10 +59,10 @@ class ToulouseRoadNetworkDataset(Dataset):
         else:
             self.images = load_images(ids, images_path)
             
-        if data_set_size!=0:
-            self.images = self.images[:data_set_size]
-            self.graphs = self.graphs[:data_set_size]
-            self.ids = self.ids[:data_set_size]
+        if dataset_size>0:
+            self.images = self.images[:dataset_size]
+            self.graphs = self.graphs[:dataset_size]
+            self.ids = self.ids[:dataset_size]
         
         print(f"Dataset loading completed, took {round(time.time() - start_time, 2)} seconds!")
         print(f"Dataset size: {len(self)}\n")
@@ -83,7 +83,7 @@ class ToulouseRoadNetworkDataset(Dataset):
                             [-sin(theta),cos(theta)]],dtype = F.dtype, device = F.device)
         F = F@rot.T
         
-        z = {'A':y['A'], 'F':F, 'h':y['h']}
+        z = {'A':y['A'], 'F':F}
         
         return x,z
         
@@ -131,20 +131,14 @@ class ToulouseRoadNetworkDataset(Dataset):
             ax_trgt.axis('off')
 
         
-    def plot_pred_trgt(self,F,A,index_trgt,ax_trgt,ax_pred,frame=False):
+    def plot_trgt(self,F,A,index_trgt,ax_pred,frame=False):
 
         graph_trgt_dic = self.graphs[index_trgt]
-        graph_trgt_nx = nx.from_numpy_array(graph_trgt_dic['A'].detach().cpu().numpy())
-
         pos = [f for f in graph_trgt_dic['F'].detach().cpu().numpy()]
 
-        if ax_trgt!=None:
-            print('not implemented')
-            
         pos = [f for f in F]
         graph_pred = nx.from_numpy_array(A)
         
-        #nx.draw(graph_pred, node_color = color_map, ax = ax_pred, pos=pos, width = edges_weights, node_size=node_size)
         nx.draw_networkx_nodes(graph_pred,node_color="k",ax=ax_pred, pos=pos)
         nx.draw_networkx_nodes(graph_pred, pos, node_size=200, node_color='#3182bd',ax=ax_pred,alpha=0.9)
         [nx.draw_networkx_edges(graph_pred,pos=pos,edgelist=[(u,v)],alpha=graph_pred[u][v]["weight"],width=3,ax=ax_pred) for u,v in graph_pred.edges] #loop through edges and draw them
@@ -332,10 +326,3 @@ def denormalize(x, normalization=True):
     return x
 
 
-if __name__ == "__main__":
-    dataset = ToulouseRoadNetworkDataset(root_path='data/',split="train", step=0.001, max_prev_node=4, use_raw_images=False)
-    
-    start_time = time.time()
-    for d in dataset:
-        x,y,idx = d
-    print(f"Iteration over the dataset completed, took {round(time.time() - start_time, 2)}s!")

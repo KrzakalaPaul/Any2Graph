@@ -14,49 +14,25 @@ class Decoder(nn.Module):
         model_dim = config['model_dim']
         dropout = config['dropout']
         node_feature_dim = config['node_feature_dim']
-        MLP_layers = config['MLP_layers']
+        MLP_h_layers = config['MLP_h_layers']
+        MLP_F_layers = config['MLP_F_layers']
+        MLP_A_layers = config['MLP_A_layers']
+        MLP_F_fd_layers = config['MLP_F_fd_layers']
         self.virtual_node = config['virtual_node']
         self.Mmax = config['Mmax']
         self.FD = config['FD']
         
-        '''
-        self.head_h = MLP(input_dim=model_dim,hidden_dim=4*model_dim,output_dim=1,num_layers=MLP_layers,dropout=dropout)
-        
-        self.head_F = MLP(input_dim=model_dim,hidden_dim=4*model_dim,output_dim=node_feature_dim,num_layers=MLP_layers,dropout=dropout)
+        self.head_h = MLP(input_dim=model_dim,hidden_dim=2*model_dim,output_dim=1,num_layers=MLP_h_layers,dropout=dropout)
+        self.head_F = MLP(input_dim=model_dim,hidden_dim=2*model_dim,output_dim=node_feature_dim,num_layers=MLP_F_layers,dropout=dropout)
         
         input_dim1 = 2*model_dim if self.virtual_node else model_dim
-        self.head_A_1 = MLP(input_dim=input_dim1,hidden_dim=4*model_dim,output_dim=model_dim,num_layers=MLP_layers,dropout=dropout)
-        input_dim2 = model_dim 
-        self.head_A_2 = MLP(input_dim=input_dim2,hidden_dim=4*model_dim,output_dim=1,num_layers=MLP_layers,dropout=dropout)    
-        
-        if self.FD is not None:
-            self.head_F_fd = MLP(input_dim=model_dim,hidden_dim=4*model_dim,output_dim=node_feature_dim,num_layers=MLP_layers,dropout=dropout)
-        '''
-        
-        self.head_h = nn.Linear(model_dim,1)
-        self.head_F = nn.Linear(model_dim,node_feature_dim)
-        
-        input_dim1 = 2*model_dim if self.virtual_node else model_dim
-        self.head_A_1 = nn.Sequential(nn.Linear(input_dim1,2*model_dim),
-                                        nn.ReLU(),
-                                        nn.Dropout(p=dropout),
-                                        nn.Linear(2*model_dim,model_dim),
-                                        nn.ReLU(),
-                                        nn.Dropout(p=dropout),
-                                        nn.Linear(model_dim,model_dim),
-                                        )
+        self.head_A_1 = MLP(input_dim=input_dim1,hidden_dim=2*model_dim,output_dim=model_dim,num_layers=MLP_A_layers,dropout=dropout)
                                         
         input_dim2 = model_dim 
-        self.head_A_2 = nn.Sequential(nn.Linear(input_dim2,model_dim),
-                                    nn.ReLU(),
-                                    nn.Dropout(p=dropout),
-                                    nn.Linear(model_dim,model_dim//2),
-                                    nn.ReLU(),
-                                    nn.Dropout(p=dropout),
-                                    nn.Linear(model_dim//2,1)    
-                                    )           
+        self.head_A_2 = MLP(input_dim=input_dim2,hidden_dim=model_dim//2,output_dim=1,num_layers=MLP_A_layers,dropout=dropout)  
+          
         if self.FD is not None:
-            self.head_F_fd = nn.Linear(model_dim,node_feature_dim)
+            self.head_F_fd = MLP(input_dim=model_dim,hidden_dim=2*model_dim,output_dim=node_feature_dim,num_layers=MLP_F_fd_layers,dropout=dropout)
         
         
 

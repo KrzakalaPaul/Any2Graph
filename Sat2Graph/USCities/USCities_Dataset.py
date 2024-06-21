@@ -35,12 +35,13 @@ def graph_from_file(file):
     m = len(vtk_data.points)
     
     return {'F': F, 'A': A, 'h': h}, m
-class USCitiesDataset(Dataset):
+
+class USCities_Dataset(Dataset):
     r"""
     Generates a subclass of the PyTorch torch.utils.data.Dataset class
     """
     
-    def __init__(self, root_path="datasets/data", split="valid",augment=False,rgb=False,Mmax=17,data_set_size=0):
+    def __init__(self, root_path='Sat2Graph/USCities/data/', split="valid",augment_data=False,rgb=False,Mmax=17,dataset_size=-1):
         r"""
         """
         
@@ -63,9 +64,6 @@ class USCitiesDataset(Dataset):
             seg_folder = os.path.join(root_path,'20cities/test_data/seg')
 
             split_files = os.listdir(img_folder)
-
-        if data_set_size == 0:
-            data_set_size = -1
 
         print('Loading data...')
         
@@ -95,7 +93,7 @@ class USCitiesDataset(Dataset):
                     self.img.append(2*tvf.to_tensor(Image.open(seg_file).convert('L')).permute(2,1,0).type(torch.int8)-1)
                         
                 counter += 1
-                if counter == data_set_size:
+                if counter == dataset_size:
                     break
                 
         tac = time.time()
@@ -104,7 +102,7 @@ class USCitiesDataset(Dataset):
         
         self.mean = [0.485, 0.456, 0.406]
         self.std = [0.229, 0.224, 0.225]
-        self.augment = augment 
+        self.augment = augment_data 
         self.rgb = rgb
 
     def __len__(self):
@@ -136,7 +134,7 @@ class USCitiesDataset(Dataset):
         F = F@rot.T
         F = F + 0.5 # uncentering
         
-        z = {'A':y['A'], 'F':F, 'h':y['h']}
+        z = {'A':y['A'], 'F':F}
         
         return x,z
     
@@ -198,30 +196,25 @@ class USCitiesDataset(Dataset):
         nx.draw_networkx_nodes(graph_trgt_nx,node_color="k",ax=ax_trgt, pos=pos)
         nx.draw_networkx_nodes(graph_trgt_nx, pos, node_size=200, node_color='#3182bd',ax=ax_trgt,alpha=0.9)
         [nx.draw_networkx_edges(graph_trgt_nx,pos=pos,edgelist=[(u,v)],alpha=1,width=3,ax=ax_trgt) for u,v in graph_trgt_nx.edges]
+        
         ax_trgt.axis('equal')
         if frame:
             pass
         else:
             ax_trgt.axis('off')
     
-    def plot_pred_trgt(self,F,A,index_trgt,ax_trgt,ax_pred,frame=False):
+    def plot_pred_trgt(self,F,A,index_trgt,ax_pred,frame=False):
 
         _, graph_trgt_dic, _ = self.__getitem__(index_trgt)
-        graph_trgt_nx = nx.from_numpy_array(graph_trgt_dic['A'].detach().cpu().numpy())
-
         pos = [f for f in graph_trgt_dic['F'].detach().cpu().numpy()]
-
-        if ax_trgt!=None:
-           print('not imlemented yet')
- 
             
         pos = [f for f in F]
         graph_pred = nx.from_numpy_array(A)
-        
 
         nx.draw_networkx_nodes(graph_pred,node_color="k",ax=ax_pred, pos=pos)
         nx.draw_networkx_nodes(graph_pred, pos, node_size=200, node_color='#3182bd',ax=ax_pred,alpha=0.9)
         [nx.draw_networkx_edges(graph_pred,pos=pos,edgelist=[(u,v)],alpha=graph_pred[u][v]["weight"],width=3,ax=ax_pred) for u,v in graph_pred.edges]
+        
         ax_pred.axis('equal')
         if frame:
             pass
@@ -229,10 +222,3 @@ class USCitiesDataset(Dataset):
             ax_pred.axis('off')
 
     
-if __name__ == "__main__":
-    
-    import matplotlib.pyplot as plt 
-    
-    dataset = USCitiesDataset(root_path='datasets/data',split='test',data_set_size=100,rgb=False,augment=False)
-    
-    print(dataset.img[0].dtype)
