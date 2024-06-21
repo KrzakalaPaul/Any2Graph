@@ -6,7 +6,7 @@ from Img2Graph import Img2Graph
 
 config_run = {'dataset': 'ColoringMedium',
                'dataset_size': -1,
-               'wandb': False,
+               'wandb': True,
                'run_name': 'ColoringMedium_testrun',
                'augment_data': True,
                }

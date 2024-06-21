@@ -7,7 +7,7 @@ from Sat2Graph import Sat2Graph
 config_run = {'dataset': 'TOULOUSE',
                'dataset_size': -1,
                'wandb': True,
-               'run_name': None,
+               'run_name': 'TOULOUSE_testrun',
                'augment_data': True,
                }
 
