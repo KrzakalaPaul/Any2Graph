@@ -4,8 +4,6 @@ from numpy import inf
 from Any2Graph import Task, Dataset
 from Any2Graph.PMFGW import PMFGW
 from time import perf_counter
-import numpy as np
-np.set_printoptions(precision=2,suppress=True)
 import wandb
 import os
 import json

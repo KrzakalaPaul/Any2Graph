@@ -23,7 +23,7 @@ class PMFGW():
         self.task = task
 
         
-    def __call__(self,continuous_predictions, padded_targets):
+    def __call__(self,continuous_predictions, padded_targets, batch_average = True):
         
         B = len(continuous_predictions)
         
@@ -68,25 +68,39 @@ class PMFGW():
                 T,log_solver = solver_quad_batch(M=M,L=L,max_iter=self.max_iter,tol=self.tol,max_iter_inner=self.max_iter_inner,mask_self_loops=self.mask_self_loops,Hungarian=self.Hungarian,log=True)
             T = T.to(device=M.device)
             
-        # Forward
-        
-        losses_h = torch.sum(T*M_weight)/B
-        losses_F = torch.sum(T*M_F)/B
-        losses_F_fd = torch.sum(T*M_F_fd)/B
-        LT = tensor_product_quad_batch(L, T,mask_self_loops=self.mask_self_loops)
-        losses_A = torch.sum(T*LT)/B
-        losses = losses_h + losses_F + losses_F_fd + losses_A
+        if batch_average:
+            
+            losses_h = torch.sum(T*M_weight)/B
+            losses_F = torch.sum(T*M_F)/B
+            losses_F_fd = torch.sum(T*M_F_fd)/B
+            LT = tensor_product_quad_batch(L, T,mask_self_loops=self.mask_self_loops)
+            losses_A = torch.sum(T*LT)/B
+            loss = losses_h + losses_F + losses_F_fd + losses_A
 
-        loss = torch.sum(losses)
-        
-        log = {'loss (batch)': loss.item(),
-               'loss h (batch)': losses_h.item()/(self.alpha_h+1e-10),
-               'loss F (batch)': losses_F.item()/(self.alpha_F+1e-10), 
-               'loss Fdiff (batch)': losses_F_fd.item()/(self.alpha_F_fd+1e-10),
-               'loss A (batch)': losses_A.item()/(self.alpha_A+1e-10),
-               'avg cg iter (batch)': log_solver['avg_cg_iter'],
-                }
-               
+            log = {'loss (batch)': loss.item(),
+                    'loss h (batch)': losses_h.item()/(self.alpha_h+1e-10),
+                    'loss F (batch)': losses_F.item()/(self.alpha_F+1e-10), 
+                    'loss Fdiff (batch)': losses_F_fd.item()/(self.alpha_F_fd+1e-10),
+                    'loss A (batch)': losses_A.item()/(self.alpha_A+1e-10),
+                    'avg cg iter (batch)': log_solver['avg_cg_iter'],
+                        }
+            
+        else:
+            losses_h = torch.sum(T*M_weight,dim=(1,2))
+            losses_F = torch.sum(T*M_F,dim=(1,2))
+            losses_F_fd = torch.sum(T*M_F_fd,dim=(1,2))
+            LT = tensor_product_quad_batch(L, T,mask_self_loops=self.mask_self_loops)
+            losses_A = torch.sum(T*LT,dim=(1,2))
+            loss = losses_h + losses_F + losses_F_fd + losses_A
+            
+            log = {'loss (batch)': loss.detach().cpu().numpy(),
+                    'loss h (batch)': losses_h.detach().cpu().numpy()/(self.alpha_h+1e-10),
+                    'loss F (batch)': losses_F.detach().cpu().numpy()/(self.alpha_F+1e-10), 
+                    'loss Fdiff (batch)': losses_F_fd.detach().cpu().numpy()/(self.alpha_F_fd+1e-10),
+                    'loss A (batch)': losses_A.detach().cpu().numpy()/(self.alpha_A+1e-10),
+                    'avg cg iter (batch)': log_solver['avg_cg_iter'],
+                    }
+                
         return loss,log
         
         

@@ -70,3 +70,10 @@ class Img2Graph(Task):
         M = batched_pairwise_L2(F_fd_logits,F_fd)
         return M
 
+    def treshold_nodes_features(self):
+        '''
+        Return the treshold (in term of L2 norm) under which two nodes features are considered to be the same.
+        This is for computing the test edit distance.
+        For instance, for one hot encoded features, this should be 0.
+        '''
+        return 1e-6
