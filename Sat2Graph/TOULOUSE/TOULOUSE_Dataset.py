@@ -131,7 +131,7 @@ class TOULOUSE_Dataset(Dataset):
             ax_trgt.axis('off')
 
         
-    def plot_trgt(self,F,A,index_trgt,ax_pred,frame=False):
+    def plot_pred(self,F,A,index_trgt,ax_pred,frame=False):
 
         graph_trgt_dic = self.graphs[index_trgt]
         pos = [f for f in graph_trgt_dic['F'].detach().cpu().numpy()]

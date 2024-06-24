@@ -203,7 +203,7 @@ class USCities_Dataset(Dataset):
         else:
             ax_trgt.axis('off')
     
-    def plot_pred_trgt(self,F,A,index_trgt,ax_pred,frame=False):
+    def plot_pred(self,F,A,index_trgt,ax_pred,frame=False):
 
         _, graph_trgt_dic, _ = self.__getitem__(index_trgt)
         pos = [f for f in graph_trgt_dic['F'].detach().cpu().numpy()]
