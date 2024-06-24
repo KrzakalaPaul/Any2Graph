@@ -168,3 +168,4 @@ cython_debug/
 **/wandb/
 **/models/
 **/logs/
+**/runs/
