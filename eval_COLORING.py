@@ -4,7 +4,7 @@
 import json
 import os
 
-run_name = 'ColoringMedium_testrun'
+run_name = 'ColoringSmall_testrun'
 save_path = f'./runs/{run_name}/'
 
 
@@ -29,10 +29,11 @@ model.load_state_dict(torch.load(os.path.join(save_path,'best_model')))
 from Any2Graph import Evaluator
 from time import perf_counter
 
-evalutor = Evaluator(task, dataset, config)
+evaluator = Evaluator(task, dataset, config)
 
+'''
 tic = perf_counter()
-metrics = evalutor.eval(model,n_samples=10)
+metrics = evaluator.eval(model,n_samples=10)
 tac = perf_counter()
 
 metrics.to_csv(save_path+'/metrics.csv')
@@ -41,4 +42,6 @@ metrics_avg = metrics.mean()
 metrics_avg['eval_time (min)'] = (tac-tic)/60
 metrics_avg.to_csv(save_path+'/metrics_avg.csv')
 
+'''
 
+evaluator.plot_prediction(model,save_path,n_samples=10)

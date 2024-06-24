@@ -5,6 +5,10 @@ from Any2Graph import Task, Dataset
 from Any2Graph.PMFGW import PMFGW
 from scipy.optimize import linear_sum_assignment
 import pandas as pd
+import matplotlib.pyplot as plt
+import pygmtools as pygm
+import os
+
 
 class Evaluator():
     
@@ -14,15 +18,38 @@ class Evaluator():
         self.config = config
         self.loss_fn = PMFGW(task, config)
         
-    def eval_single(self, h_pred, F_pred, A_pred, h_trgt, F_trgt, A_trgt):
+    def matching_numpy(self,F1,A1,F2,A2,max_iter=100,sk_iter=100,beta=100):
+    
+        m = len(F1)
+        
+        S = np.where(A1[None,:,None,:] == A2[:,None,:,None], 1 , 0)/2   
+        M = self.task.is_same_feature_matrix(F1,F2)
 
-        metrics = {}
+        K = S.reshape(m**2,m**2)
+                        
+        for i in range(m):
+            for k in range(m):
+                for l in range(m):
+                    K[i+m*k,i+m*l] = 0
+        for k in range(m):
+            for i in range(m):
+                for j in range(m):
+                    K[i+m*k,j+m*k] = 0
+                    
+        np.fill_diagonal(K,M.reshape(-1))
+
+        P = pygm.rrwm(K, m, m, max_iter=max_iter, sk_iter = sk_iter,beta=beta)
+        
+        permutation_trgt, permutation_pred = linear_sum_assignment(-P.T)
+
+        return permutation_trgt, permutation_pred
+        
+    def align(self, h_pred, F_pred, A_pred, h_trgt, F_trgt, A_trgt):
         
         # Decoding step
         
         m = int(np.sum(h_trgt))
         
-        h_trgt = h_trgt[:m]
         F_trgt = F_trgt[:m]
         A_trgt = A_trgt[:m,:m]
 
@@ -31,38 +58,57 @@ class Evaluator():
 
         F_pred = F_pred[indices]
         A_pred = A_pred[indices][:,indices]
-        
-        h_pred = np.where(h_pred>0.5,1,0)
         A_pred = np.where(A_pred>0.5,1,0)
         
         # Graph matching 
-        T = matching_numpy(F_pred,A_pred,F_trgt,A_trgt,max_iter=200,beta=100,sk_iter=100,treshold_nodes_features=self.task.treshold_nodes_features())
-        
-        # Reordering
-        permutation_trgt, permutation_pred = linear_sum_assignment(-T.T)
-        
+        permutation_trgt, permutation_pred = self.matching_numpy(F_pred,A_pred,F_trgt,A_trgt)
+ 
         F_trgt = F_trgt[permutation_trgt]
         A_trgt = A_trgt[permutation_trgt][:,permutation_trgt]
         
         F_pred = F_pred[permutation_pred]
         A_pred = A_pred[permutation_pred][:,permutation_pred]
         
+        return  F_pred, A_pred, F_trgt, A_trgt
+        
+    
+    def plot_single(self, h_pred, F_pred, A_pred, h_trgt, F_trgt, A_trgt, index, img_save_path = None):
+        
+        F_pred, A_pred, F_trgt, A_trgt = self.align(h_pred, F_pred, A_pred, h_trgt, F_trgt, A_trgt)
+        
+        fig, (ax1,ax2,ax3) = plt.subplots(1,3,figsize=(15,5))
+        
+        self.dataset.plot_img(index,ax1)
+        self.dataset.plot_trgt(index,ax2)
+        self.dataset.plot_pred(F_pred,A_pred,index,ax3)
+        
+        if img_save_path is not None:
+            fig.savefig(img_save_path)
+        
+        
+    def eval_single(self, h_pred, F_pred, A_pred, h_trgt, F_trgt, A_trgt):
+
+        metrics = {}
+        
+        F_pred, A_pred, F_trgt, A_trgt = self.align(h_pred, F_pred, A_pred, h_trgt, F_trgt, A_trgt)
+        
         edges_pred = np.concatenate([A_pred[k,k+1:] for k in range(m)])
         edges_trgt = np.concatenate([A_trgt[k,k+1:] for k in range(m)])
         
         ## SIZE ACCURACY 
         m_pred = int(np.sum(h_pred))
+        m = int(np.sum(h_trgt))
         metrics['Size Accuracy'] = int(m_pred == m)
         
         ## NODE ACCURACY
-        metrics['Nodes Accuracy'] = np.where(np.linalg.norm(F_pred -F_trgt,ord=2,axis=1)< self.task.treshold_nodes_features(), 1,0).sum().item() / m
+        metrics['Nodes Accuracy'] = self.task.is_same_feature(F_pred,F_trgt).sum().item() / m
         
         ## EDGE ACCURACY
         metrics['Edge Precision'] = (np.sum(edges_pred*edges_trgt)/(np.sum(edges_pred)+1e-6)).item()
         metrics['Edge Recall'] = (np.sum(edges_pred*edges_trgt)/(np.sum(edges_trgt)+1e-6)).item()
         
         ## Edit Distance
-        metrics['Edit Distance'] = np.sum(edges_pred!=edges_trgt) + np.where(np.linalg.norm(F_pred -F_trgt,ord=2,axis=1)<self.task.treshold_nodes_features() , 0,1).sum()
+        metrics['Edit Distance'] = np.sum(edges_pred!=edges_trgt) + (1-self.task.is_same_feature(F_pred,F_trgt)).sum()
         metrics['GI Accuracy'] = int(metrics['Edit Distance'] < 1e-6)
         
         return metrics
@@ -145,36 +191,53 @@ class Evaluator():
         return pd.DataFrame(metrics)
   
     
-    def plot_prediction(self, model, save_path, n_samples = 10):
-        pass
-    
-    
-import pygmtools as pygm
-
-def matching_numpy(F1,A1,F2,A2,max_iter=100,sk_iter=100,beta=100,treshold_nodes_features=1e-6):
-    
-    m = len(F1)
-    
-    S = np.where(A1[None,:,None,:] == A2[:,None,:,None], 1 , 0)/2   
-    M = np.where(np.linalg.norm(F1[None,:,:] - F2[:,None,:],ord=2,axis=-1)< treshold_nodes_features, 1,0)
-
-    K = S.reshape(m**2,m**2)
-                       
-    for i in range(m):
-        for k in range(m):
-            for l in range(m):
-                K[i+m*k,i+m*l] = 0
-    for k in range(m):
-        for i in range(m):
-            for j in range(m):
-                K[i+m*k,j+m*k] = 0
+    def plot_prediction(self, model, save_path, n_samples = 10, batchsize = 32):
+        
+        # Create directory if it does not exist
+        plots_dir = save_path + '/plots'
+        if not os.path.exists(plots_dir):
+            os.makedirs(plots_dir)
+        
+        dataloader = DataLoader(self.dataset, 
+                                batch_size=batchsize, 
+                                shuffle=False, 
+                                collate_fn=self.task.collate_fn)
+        
+        device = self.config['device']
+        model = model.to(device)
+        model.eval()
+        
+        size = 0
+        
+        for inputs, padded_targets, indices in dataloader:
+            
+            # To device
+            inputs = self.task.inputs_to_device(inputs,device)
+            padded_targets = padded_targets.to(device)
+            
+            # Forward 
+            continuous_predictions = model(inputs,logits=True)
+            
+            batchsize = len(inputs)
+            for i in range(batchsize):
+                    
+                h_pred = continuous_predictions.h[i].detach().cpu().numpy()
+                F_pred = continuous_predictions.F[i].detach().cpu().numpy()
+                A_pred = continuous_predictions.A[i].detach().cpu().numpy()
                 
-    np.fill_diagonal(K,M.reshape(-1))
+                h_trgt = padded_targets.h[i].detach().cpu().numpy()
+                F_trgt = padded_targets.F[i].detach().cpu().numpy()
+                A_trgt = padded_targets.A[i].detach().cpu().numpy()
+                
+                img_save_path = save_path + f'/plots/{indices[i]}.pdf'
+                self.plot_single(h_pred, F_pred, A_pred, h_trgt, F_trgt, A_trgt, index = indices[i], img_save_path = img_save_path)
+                
+                size += 1
+                if size > n_samples:
+                    return 
+    
+    
 
-    X = pygm.rrwm(K, m, m, max_iter=max_iter, sk_iter = sk_iter,beta=beta)
-    X = pygm.hungarian(X)
-
-    return X
 
 '''
 def matching_torch(F1,A1,F2,A2,max_iter=100,sk_iter=100,beta=100,treshold2d=0.1):

@@ -99,13 +99,13 @@ class ColoringDataset(Dataset):
             ax_trgt.axis('off')
             
             
-    def plot_pred(self,F,A,h,index_trgt,ax_pred,frame=False):
+    def plot_pred(self,F,A,index_trgt,ax_pred,frame=False):
 
         graph_trgt_torch = self.graphs[index_trgt]
         pos = [p.numpy() for p in graph_trgt_torch.centroid]
 
         graph_pred = nx.from_numpy_array(A)
-        color_map = [self.colors[f] for f in F]
+        color_map = [self.colors[np.argmax(f)] for f in F]
 
         nx.draw_networkx_nodes(graph_pred,node_color="k",ax=ax_pred, pos=pos)
         nx.draw_networkx_nodes(graph_pred, pos, node_size=200, node_color=color_map,ax=ax_pred,alpha=1)

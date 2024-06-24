@@ -26,3 +26,11 @@ class Dataset(Dataset):
         y = self.y
         return x,y,idx
     
+    def plot_img(self,index,ax):
+        pass
+    
+    def plot_trgt(self,index_trgt,ax_trgt):
+        pass
+    
+    def plot_pred(self,F,A,index_trgt,ax_pred):
+        pass

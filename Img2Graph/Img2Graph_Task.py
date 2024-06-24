@@ -4,6 +4,7 @@ from .Img2Graph_Encoder import TroncatedResNet
 from Any2Graph.utils import batched_pairwise_L2, batched_pairwise_KL
 from Any2Graph.graphs.custom_graphs_classes import BatchedContinuousGraphs_from_list, ContinuousGraphs_from_padding
 import torch 
+import numpy as np
 
 class Img2Graph(Task):
     
@@ -70,10 +71,18 @@ class Img2Graph(Task):
         M = batched_pairwise_L2(F_fd_logits,F_fd)
         return M
 
-    def treshold_nodes_features(self):
+    def is_same_feature(self,F1,F2):
         '''
-        Return the treshold (in term of L2 norm) under which two nodes features are considered to be the same.
-        This is for computing the test edit distance.
-        For instance, for one hot encoded features, this should be 0.
+        F1 of size nxd is the feature matrix of graph 1
+        F2 of size nxd is the feature matrix of graph 2
+        return a boolean vector of size n where True means that the feature is the same in both graphs
         '''
-        return 1e-6
+        return np.argmax(F1,-1) == np.argmax(F2,-1)
+    
+    def is_same_feature_matrix(self,F1,F2):
+        '''
+        F1 of size nxd is the feature matrix of graph 1
+        F2 of size mxd is the feature matrix of graph 2
+        return a boolean matrix of size nxm, where M_ij = 1 means that the feature i of graph 1 is the same as the feature j of graph 2
+        '''
+        return np.where(np.argmax(F1,-1)[None,:] == np.argmax(F2,-1)[:,None], 1, 0)
