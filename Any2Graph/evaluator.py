@@ -89,6 +89,7 @@ class Evaluator():
     def eval_single(self, h_pred, F_pred, A_pred, h_trgt, F_trgt, A_trgt):
 
         metrics = {}
+        m = int(np.sum(h_trgt))
         
         F_pred, A_pred, F_trgt, A_trgt = self.align(h_pred, F_pred, A_pred, h_trgt, F_trgt, A_trgt)
         
@@ -97,7 +98,6 @@ class Evaluator():
         
         ## SIZE ACCURACY 
         m_pred = int(np.sum(h_pred))
-        m = int(np.sum(h_trgt))
         metrics['Size Accuracy'] = int(m_pred == m)
         
         ## NODE ACCURACY
@@ -185,7 +185,7 @@ class Evaluator():
                     metrics[key].append(metrics_single[key])
                     
                 size += 1
-                if size > n_samples:
+                if size >= n_samples:
                     return pd.DataFrame(metrics)
                 
         return pd.DataFrame(metrics)
@@ -233,7 +233,7 @@ class Evaluator():
                 self.plot_single(h_pred, F_pred, A_pred, h_trgt, F_trgt, A_trgt, index = indices[i], img_save_path = img_save_path)
                 
                 size += 1
-                if size > n_samples:
+                if size >= n_samples:
                     return 
     
     
