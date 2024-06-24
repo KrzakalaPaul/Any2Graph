@@ -6,7 +6,7 @@ from Any2Graph.PMFGW import PMFGW
 from time import perf_counter
 import wandb
 import os
-import json
+import yaml
 
 class Trainer():
     
@@ -31,8 +31,8 @@ class Trainer():
                 
         if save_path != None:
             os.makedirs(save_path, exist_ok=True)
-            with open(save_path+'args.txt', 'w') as f:
-                json.dump(self.config, f, indent=2)
+            with open(save_path+'args.yaml', 'w') as f:
+                yaml.dump(self.config, f)
             
         device = self.config['device']
         batchsize=self.config['batchsize']

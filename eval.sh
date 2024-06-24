@@ -7,4 +7,4 @@
 #SBATCH --gpus=1
 
 set -x
-srun python -u train_Sat2Graph.py 
+srun python -u eval.py --run_name TOULOUSE_testrun_bis --n_samples_eval 100 --n_samples_plot 100

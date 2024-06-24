@@ -7,4 +7,4 @@
 #SBATCH --gpus=1
 
 set -x
-srun python -u train_COLORING.py 
+srun python -u train.py --config TOULOUSE_default --run_name TOULOUSE_testrun_bis
