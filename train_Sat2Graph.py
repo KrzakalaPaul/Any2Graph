@@ -68,5 +68,5 @@ model = Any2Graph_Model(task, config)
 ### ------------------------ TRAIN ------------------------ ###
 
 trainer = Trainer(task, dataset_train, dataset_test, config)
-trainer.train(model)
-
+save_path = None if config['run_name'] == None else f'./runs/{config["run_name"]}/'
+trainer.train(model, save_path = save_path)

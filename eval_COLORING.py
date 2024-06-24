@@ -27,8 +27,18 @@ model.load_state_dict(torch.load(os.path.join(save_path,'best_model')))
 ### ------------------------ EVAL ------------------------ ###
 
 from Any2Graph import Evaluator
+from time import perf_counter
 
 evalutor = Evaluator(task, dataset, config)
 
-evalutor.eval(model)
+tic = perf_counter()
+metrics = evalutor.eval(model,n_samples=10)
+tac = perf_counter()
+
+metrics.to_csv(save_path+'/metrics.csv')
+
+metrics_avg = metrics.mean()
+metrics_avg['eval_time (min)'] = (tac-tic)/60
+metrics_avg.to_csv(save_path+'/metrics_avg.csv')
+
 

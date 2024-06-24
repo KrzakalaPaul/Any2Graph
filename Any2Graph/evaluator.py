@@ -18,21 +18,14 @@ class Evaluator():
 
         metrics = {}
         
-        # Tresholding
+        # Decoding step
         
         m = int(np.sum(h_trgt))
         
-        Mmax = h_pred.shape[0]
-        
-        if m>Mmax:
-            h_trgt = h_trgt[:Mmax]
-            F_trgt = F_trgt[:Mmax]
-            A_trgt = A_trgt[:Mmax,:Mmax]
-            m = Mmax
-            print('Warning: target graph is too large for the model')
-        
-        # Decoding step
-        
+        h_trgt = h_trgt[:m]
+        F_trgt = F_trgt[:m]
+        A_trgt = A_trgt[:m,:m]
+
         indices = h_pred.argsort()
         indices = indices[-m:]
 
@@ -75,7 +68,7 @@ class Evaluator():
         return metrics
     
     
-    def eval(self, model:torch.nn.Module, n_samples = 1000, batchsize = 128):
+    def eval(self, model:torch.nn.Module, n_samples = 1000, batchsize = 32):
         
         dataloader = DataLoader(self.dataset, 
                                 batch_size=batchsize, 
@@ -111,29 +104,27 @@ class Evaluator():
             continuous_predictions = model(inputs,logits=True)
             
             # PMGW Loss
-            _, log_loss = self.loss_fn(continuous_predictions, padded_targets)
-            
-            metrics['PMFGW h']+=list(log_loss['loss h (batch)'])
-            metrics['PMFGW F']+=list(log_loss['loss F (batch)'])
-            metrics['PMFGW F_fd']+=list(log_loss['loss Fdiff (batch)'])
-            metrics['PMFGW A']+=list(log_loss['loss A (batch)'])
-            metrics['PMFGW']+=list(log_loss['loss (batch)'])
+            _, log_loss = self.loss_fn(continuous_predictions, padded_targets, batch_average = False)
             
             # Post Process Logits
             
             continuous_predictions.h = torch.sigmoid(continuous_predictions.h )  
             continuous_predictions.F = self.task.F_from_logits(continuous_predictions.F)
             A = torch.sigmoid(continuous_predictions.A)
-            mask = ~torch.eye(self.decoder.Mmax,dtype=bool,device=A.device)
+            mask = ~torch.eye(self.config['Mmax'],dtype=bool,device=A.device)
             continuous_predictions.A = A*mask[None,:,:]
             if continuous_predictions.F_fd is not None:
                 continuous_predictions.F_fd = self.task.F_fd_from_logits(continuous_predictions.F_fd)
             
-            # Discrete Metrics
-            
             batchsize = len(inputs)
             for i in range(batchsize):
                 
+                metrics['PMFGW h'].append(log_loss['loss h (batch)'][i])
+                metrics['PMFGW F'].append(log_loss['loss F (batch)'][i])
+                metrics['PMFGW F_fd'].append(log_loss['loss Fdiff (batch)'][i])
+                metrics['PMFGW A'].append(log_loss['loss A (batch)'][i])
+                metrics['PMFGW'].append(log_loss['loss (batch)'][i])
+                    
                 h_pred = continuous_predictions.h[i].detach().cpu().numpy()
                 F_pred = continuous_predictions.F[i].detach().cpu().numpy()
                 A_pred = continuous_predictions.A[i].detach().cpu().numpy()
@@ -147,10 +138,10 @@ class Evaluator():
                 for key in metrics_single.keys():
                     metrics[key].append(metrics_single[key])
                     
-            size += batchsize
-            if size > n_samples:
-                break   
-            
+                size += 1
+                if size > n_samples:
+                    return pd.DataFrame(metrics)
+                
         return pd.DataFrame(metrics)
   
     
