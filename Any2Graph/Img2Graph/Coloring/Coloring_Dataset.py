@@ -13,7 +13,7 @@ from torch.utils.data import Dataset
 
 class ColoringDataset(Dataset):
 
-    def __init__(self,root_path='Img2Graph/Coloring/data/',subset='small',split='test',augment_data=False,dataset_size=-1):
+    def __init__(self,root_path='Any2Graph/Img2Graph/Coloring/data/',subset='small',split='test',augment_data=False,dataset_size=-1):
         
         super().__init__()
         

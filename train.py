@@ -20,10 +20,10 @@ config['run_name'] = args.run_name
 ### ------------------------ LOAD TASK ------------------------ ###
 
 if config['task'] == 'Img2Graph':
-    from Img2Graph import Img2Graph as Task
+    from Any2Graph.Img2Graph import Img2Graph as Task
     
 elif config['task'] == 'Sat2Graph':
-    from Sat2Graph import Sat2Graph as Task
+    from Any2Graph.Sat2Graph import Sat2Graph as Task
 
 else:
     raise ValueError('Task not recognized')

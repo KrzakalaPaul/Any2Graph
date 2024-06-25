@@ -41,7 +41,7 @@ class USCities_Dataset(Dataset):
     Generates a subclass of the PyTorch torch.utils.data.Dataset class
     """
     
-    def __init__(self, root_path='Sat2Graph/USCities/data/', split="valid",augment_data=False,rgb=False,Mmax=17,dataset_size=-1):
+    def __init__(self, root_path='Any2Graph/Sat2Graph/USCities/data/', split="valid",augment_data=False,rgb=False,Mmax=17,dataset_size=-1):
         r"""
         """
         

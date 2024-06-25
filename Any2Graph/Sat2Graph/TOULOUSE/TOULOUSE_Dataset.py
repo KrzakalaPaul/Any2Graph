@@ -20,7 +20,7 @@ class TOULOUSE_Dataset(Dataset):
     Generates a subclass of the PyTorch torch.utils.data.Dataset class
     """
     
-    def __init__(self, root_path='Sat2Graph/TOULOUSE/data/', split="valid",
+    def __init__(self, root_path='Any2Graph/Sat2Graph/TOULOUSE/data/', split="valid",
                  max_prev_node=4, step=0.001, use_raw_images=False, return_coordinates=False,augment_data=False,dataset_size=-1):
         r"""
         
