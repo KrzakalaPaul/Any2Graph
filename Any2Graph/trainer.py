@@ -188,7 +188,7 @@ class Trainer():
                 log[key] += log_batch[key+' (batch)']*batchsize
             
                     
-            size += len(inputs)
+            size += len(indices)
             if size>n_samples:
                 break
 

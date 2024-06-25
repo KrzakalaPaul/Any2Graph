@@ -165,7 +165,7 @@ class Evaluator():
             if continuous_predictions.F_fd is not None:
                 continuous_predictions.F_fd = self.task.F_fd_from_logits(continuous_predictions.F_fd)
             
-            batchsize = len(inputs)
+            batchsize = len(indices)
             for i in range(batchsize):
                 
                 metrics['PMFGW h'].append(log_loss['loss h (batch)'][i])

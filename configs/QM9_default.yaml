@@ -17,7 +17,7 @@ warmup: 8000
 # MODEL PARAMETERS
 Mmax: 10
 model_dim: 128
-dropout: 0.
+dropout: 0.1
 node_feature_dim: 4
 MLP_h_layers: 1
 MLP_F_layers: 1
@@ -26,7 +26,7 @@ MLP_A_layers: 3
 virtual_node: True
 transformer_layers: 3
 transformer_heads: 4
-transformer_dropout: 0.
+transformer_dropout: 0.1
 pre_norm: True
 
 # LOSS PARAMETERS
