@@ -84,6 +84,9 @@ class Evaluator():
         
         if img_save_path is not None:
             fig.savefig(img_save_path)
+            plt.close(fig)
+        else:
+            plt.show()
         
         
     def eval_single(self, h_pred, F_pred, A_pred, h_trgt, F_trgt, A_trgt):
@@ -218,7 +221,7 @@ class Evaluator():
             # Forward 
             continuous_predictions = model(inputs,logits=True)
             
-            batchsize = len(inputs)
+            batchsize = len(indices)
             for i in range(batchsize):
                     
                 h_pred = continuous_predictions.h[i].detach().cpu().numpy()

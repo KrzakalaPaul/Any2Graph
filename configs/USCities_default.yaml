@@ -1,6 +1,6 @@
 
 # RUN PARAMETERS
-dataset: "TOULOUSE"
+dataset: "USCities"
 task: "Sat2Graph"
 dataset_size: -1
 wandb: True
@@ -9,14 +9,14 @@ device: "cuda"
 
 # OPTIM PARAMETERS
 batchsize: 128
-max_grad_step: 150000
+max_grad_step: 200000
 max_grad_norm: 0.1
 n_eval_interval: 1000
 lr: 0.0001
 warmup: 8000
 
 # MODEL PARAMETERS
-Mmax: 11
+Mmax: 18
 model_dim: 256
 dropout: 0.0
 node_feature_dim: 2
@@ -34,10 +34,10 @@ pre_norm: True
 max_iter: 20
 tol: 0.00001
 max_iter_inner: 2000
-alpha_h: 1
+alpha_h: 2
 alpha_F: 5
 alpha_F_fd: 0
-alpha_A: 1
+alpha_A: 0.5
 FD: False
 Hungarian: False
 mask_self_loops: False

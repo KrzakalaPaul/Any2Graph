@@ -1,44 +1,43 @@
 
 # RUN PARAMETERS
-dataset: "TOULOUSE"
-task: "Sat2Graph"
+dataset: "GDB13"
+task: "Fingerprint2Graph"
 dataset_size: -1
 wandb: True
-augment_data: True
 device: "cuda"
 
 # OPTIM PARAMETERS
-batchsize: 128
+batchsize: 256
 max_grad_step: 150000
 max_grad_norm: 0.1
 n_eval_interval: 1000
-lr: 0.0001
+lr: 0.0003
 warmup: 8000
 
 # MODEL PARAMETERS
-Mmax: 11
-model_dim: 256
-dropout: 0.0
-node_feature_dim: 2
+Mmax: 15
+model_dim: 512
+dropout: 0.
+node_feature_dim: 5
 MLP_h_layers: 1
 MLP_F_layers: 1
 MLP_F_fd_layers: 1
 MLP_A_layers: 3
 virtual_node: True
-transformer_layers: 4
+transformer_layers: 5
 transformer_heads: 8
-transformer_dropout: 0.0
+transformer_dropout: 0.
 pre_norm: True
 
 # LOSS PARAMETERS
-max_iter: 20
+max_iter: 30
 tol: 0.00001
 max_iter_inner: 2000
 alpha_h: 1
-alpha_F: 5
-alpha_F_fd: 0
+alpha_F: 1
+alpha_F_fd: 1
 alpha_A: 1
-FD: False
+FD: True
 Hungarian: False
 mask_self_loops: False
 linear_matching: False

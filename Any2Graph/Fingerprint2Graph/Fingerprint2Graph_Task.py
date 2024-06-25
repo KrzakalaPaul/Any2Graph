@@ -1,12 +1,14 @@
 from Any2Graph.base_task_class import Task
 from .QM9.QM9_dataset import QM9_Dataset
-from GDB13.GDB13_dataset import GDB13_Dataset
+from .GDB13.GDB13_dataset import GDB13_Dataset
 from .Fingerprint2Graph_Encoder import TokenEncoder
 from Any2Graph.utils import batched_pairwise_L2, batched_pairwise_KL
 import torch 
 import numpy as np
+from torchtext.functional import to_tensor
+from Any2Graph.graphs.custom_graphs_classes import BatchedContinuousGraphs_from_list, ContinuousGraphs_from_padding
 
-class Img2Graph(Task):
+class Fingerprint2Graph(Task):
     
     def __init__(self,config) -> None:
         self.config = config
@@ -29,7 +31,7 @@ class Img2Graph(Task):
         Get Encoder
         '''
 
-        return TokenEncoder(model_dim=self.config['model_dim'], vocab_len = 2048, pos_embed= True)
+        return TokenEncoder(model_dim=self.config['model_dim'], vocab_len = 2048 + 2, pos_embed= True) # 2048 + 2 for ECFP4 + <sos> token + <unk> token
     
     def F_from_logits(self,F_logits):
         '''
@@ -62,6 +64,35 @@ class Img2Graph(Task):
         '''
         M = batched_pairwise_L2(F_fd_logits,F_fd)
         return M
+    
+    def collate_fn(self,data):   
+        token_batch = []
+        padded_targets = []
+        mask_batch = []
+        idx_batch = []
+        for tokens,graph,idx in data:
+            token_batch.append(tokens)
+            padded_targets.append(ContinuousGraphs_from_padding(graph['F'],graph['A'],self.config['Mmax']))
+            mask_batch.append([0]*len(tokens))
+            idx_batch.append(idx)
+        token_batch = to_tensor(token_batch,padding_value=0,dtype=torch.long)
+        mask_batch = to_tensor(mask_batch,padding_value=1,dtype=torch.bool)
+        inputs = {'tokens':token_batch,'masks':mask_batch}
+        padded_targets = BatchedContinuousGraphs_from_list(padded_targets)
+        return inputs,padded_targets,idx_batch
+    
+
+    def inputs_to_device(self,inputs,device):
+        '''
+        Send inputs to device
+        Ex for text: 
+        tokens, mask = inputs
+        return tokens.to(device), mask.to(device)
+        '''
+        token_batch = inputs['tokens'].to(device)
+        mask_batch = inputs['masks'].to(device)
+        inputs = {'tokens':token_batch,'masks':mask_batch}
+        return inputs
 
     def is_same_feature(self,F1,F2):
         '''

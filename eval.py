@@ -29,6 +29,9 @@ if config['task'] == 'Img2Graph':
 elif config['task'] == 'Sat2Graph':
     from Any2Graph.Sat2Graph import Sat2Graph as Task
 
+elif config['task'] == 'Fingerprint2Graph':
+    from Any2Graph.Fingerprint2Graph import Fingerprint2Graph as Task
+
 else:
     raise ValueError('Task not recognized')
 

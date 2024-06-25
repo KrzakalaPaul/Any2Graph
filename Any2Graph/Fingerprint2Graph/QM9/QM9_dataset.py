@@ -22,7 +22,7 @@ class QM9_Dataset(Dataset):
         
         super(QM9_Dataset).__init__()
         
-        path = os.path.join(root_path,'QM9'+split+'_smiles.csv')
+        path = os.path.join(root_path,'QM9_'+split+'_smiles.csv')
         self.smiles = pd.read_csv(path)
             
         # TRONCATE DATASET FOR EXP
@@ -45,7 +45,7 @@ class QM9_Dataset(Dataset):
         return len(self.smiles)
     
     def symbol_to_one_hot(self,symbol):
-        tensor = torch.zeros(5)
+        tensor = torch.zeros(4)
         if symbol == 'C':
             tensor[0] = 1
         if symbol == 'N':
@@ -61,27 +61,15 @@ class QM9_Dataset(Dataset):
         smile = self.smiles.iloc[idx].values[0]
         mol = MolFromSmiles(smile)
         
-        A = torch.tensor(rdmolops.GetAdjacencyMatrix(mol))
-        F = torch.stack([self.symbol_to_one_hot(atom.GetSymbol()) for atom in mol.GetAtoms()])
+        A = torch.tensor(rdmolops.GetAdjacencyMatrix(mol)).to(torch.float32)
+        F = torch.stack([self.symbol_to_one_hot(atom.GetSymbol()) for atom in mol.GetAtoms()]).to(torch.float32)
         graph = {'A':A,'F':F}
         
         fp = ECFP4(mol,return_bits=True)
         fp = [str(bit) for bit in fp]
-        inputs = self.text_pipeline(fp)
+        tokens = self.text_pipeline(fp)
         
-        return inputs,graph,idx
-        
-    def __getitem__(self, idx):
-        atom, adj, properties = self.data[idx]
-        
-        A = torch.tensor(adj.sum(0),dtype=torch.float32)
-        F = one_hot(torch.tensor(atom,dtype=torch.long)-6,num_classes=4).float() # C N O F = 6 7 8 9 
-        F_tilde = A.float()@F
-        h = torch.ones(len(F),dtype=torch.float32)
-        graph = {'A':A,'F':F,'F_tilde':F_tilde,'h':h,'G':None}
-        inputs = self.text_pipeline(self.fps[idx])
-        
-        return inputs,graph,idx
+        return tokens,graph,idx
     
     def plot_input(self,index,ax,frame=False,fontsize=12):
         

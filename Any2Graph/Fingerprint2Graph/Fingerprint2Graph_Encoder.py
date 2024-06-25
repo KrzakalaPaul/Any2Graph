@@ -33,8 +33,9 @@ class TokenEncoder(nn.Module):
             self.pos_encoding = None
         
     def forward(self,inputs):
-        fingerprints,masks = inputs
-        x = self.token_embedding(fingerprints)
+        tokens = inputs['tokens']
+        masks = inputs['masks']
+        x = self.token_embedding(tokens)
         if self.pos_encoding != None:
             pos_embed = self.pos_encoding(x)
         else:
