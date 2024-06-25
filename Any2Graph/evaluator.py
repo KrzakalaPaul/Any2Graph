@@ -78,7 +78,7 @@ class Evaluator():
         
         fig, (ax1,ax2,ax3) = plt.subplots(1,3,figsize=(15,5))
         
-        self.dataset.plot_img(index,ax1)
+        self.dataset.plot_input(index,ax1)
         self.dataset.plot_trgt(index,ax2)
         self.dataset.plot_pred(F_pred,A_pred,index,ax3)
         

@@ -106,7 +106,7 @@ class TOULOUSE_Dataset(Dataset):
             x,y = self.transform(x,y)
         return x,y,idx
     
-    def plot_img(self,index,ax):
+    def plot_input(self,index,ax):
         
         ax.imshow(self.images[index],cmap='Greys',vmin=-1,vmax=1,origin='lower')
         ax.set_axis_off()

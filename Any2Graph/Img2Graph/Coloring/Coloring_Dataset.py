@@ -71,7 +71,7 @@ class ColoringDataset(Dataset):
         
         return x,y,idx
     
-    def plot_img(self,index,ax,frame=False):
+    def plot_input(self,index,ax,frame=False):
         image = self.images[index].astype(np.float32)/255
         ax.imshow(np.transpose(image,(1,0,2)),vmin=0,vmax=1,origin='lower')
         if frame:

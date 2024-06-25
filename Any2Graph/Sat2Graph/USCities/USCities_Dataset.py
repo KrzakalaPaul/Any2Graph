@@ -169,7 +169,7 @@ class USCities_Dataset(Dataset):
         
         return input, target, idx
     
-    def plot_img(self,index,ax):
+    def plot_input(self,index,ax):
 
         if self.rgb:
             image_data = self.img[index].float()

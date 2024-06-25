@@ -26,7 +26,7 @@ class Dataset(Dataset):
         y = self.y
         return x,y,idx
     
-    def plot_img(self,index,ax):
+    def plot_input(self,index,ax):
         pass
     
     def plot_trgt(self,index_trgt,ax_trgt):
