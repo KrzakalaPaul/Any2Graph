@@ -44,7 +44,7 @@ class Evaluator():
 
         return permutation_trgt, permutation_pred
         
-    def align(self, h_pred, F_pred, A_pred, h_trgt, F_trgt, A_trgt):
+    def align(self, h_pred, F_pred, A_pred, h_trgt, F_trgt, A_trgt, return_discrete_A = True):
         
         # Decoding step
         
@@ -58,10 +58,13 @@ class Evaluator():
 
         F_pred = F_pred[indices]
         A_pred = A_pred[indices][:,indices]
-        A_pred = np.where(A_pred>0.5,1,0)
+        A_pred_discrete = np.where(A_pred>0.5,1,0)
         
         # Graph matching 
-        permutation_trgt, permutation_pred = self.matching_numpy(F_pred,A_pred,F_trgt,A_trgt)
+        permutation_trgt, permutation_pred = self.matching_numpy(F_pred,A_pred_discrete,F_trgt,A_trgt)
+        
+        if return_discrete_A:
+            A_pred = A_pred_discrete
  
         F_trgt = F_trgt[permutation_trgt]
         A_trgt = A_trgt[permutation_trgt][:,permutation_trgt]
@@ -74,7 +77,7 @@ class Evaluator():
     
     def plot_single(self, h_pred, F_pred, A_pred, h_trgt, F_trgt, A_trgt, index, img_save_path = None):
         
-        F_pred, A_pred, F_trgt, A_trgt = self.align(h_pred, F_pred, A_pred, h_trgt, F_trgt, A_trgt)
+        F_pred, A_pred, F_trgt, A_trgt = self.align(h_pred, F_pred, A_pred, h_trgt, F_trgt, A_trgt, return_discrete_A = False)
         
         fig, (ax1,ax2,ax3) = plt.subplots(1,3,figsize=(15,5))
         
@@ -220,6 +223,16 @@ class Evaluator():
             
             # Forward 
             continuous_predictions = model(inputs,logits=True)
+            
+            # Post Process Logits
+            
+            continuous_predictions.h = torch.sigmoid(continuous_predictions.h )  
+            continuous_predictions.F = self.task.F_from_logits(continuous_predictions.F)
+            A = torch.sigmoid(continuous_predictions.A)
+            mask = ~torch.eye(self.config['Mmax'],dtype=bool,device=A.device)
+            continuous_predictions.A = A*mask[None,:,:]
+            if continuous_predictions.F_fd is not None:
+                continuous_predictions.F_fd = self.task.F_fd_from_logits(continuous_predictions.F_fd)
             
             batchsize = len(indices)
             for i in range(batchsize):
