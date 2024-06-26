@@ -100,7 +100,7 @@ class Evaluator():
         edges_trgt = np.concatenate([A_trgt[k,k+1:] for k in range(m)])
         
         ## SIZE ACCURACY 
-        m_pred = int(np.sum(h_pred))
+        m_pred = int(np.sum(np.where(h_pred>0.5,1,0)))
         metrics['Size Accuracy'] = int(m_pred == m)
         
         ## NODE ACCURACY
