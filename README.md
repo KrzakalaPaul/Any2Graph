@@ -78,11 +78,7 @@ Any2Graph/
 		    └── 20cities/
 ```
 
-Then execute prepare_USCities.py (located in Any2Graph/Sat2Graph/USCities)
-
-```
-python prepare_USCities.py
-```
+Then execute prepare_USCities.py (located in Any2Graph/Sat2Graph/USCities).
 
 
 ### QM9
@@ -100,6 +96,16 @@ Then execute split_QM9.py (located in Any2Graph/Fingerprint2Graph/QM9) to split 
 
 ### GDB13
 
+Download the smiles string of the molecules in GDB13 from [GDB13_smiles]([https://github.com/songtaohe/Sat2Graph/tree/master/prepare_dataset](https://zenodo.org/record/5172018/files/GDB13_Subset-ABCDEFGH.smi.gz?download=1)). It should be organized as follows
+
+```
+Any2Graph/
+└── Fingerprint2Graph
+	└── GDB13
+		└── data/
+		    └── GDB13_Subset-ABCDEFGH.smi
+```
+Then execute split_GDB13.py (located in Any2Graph/Fingerprint2Graph/GDB13) to split between train/test/validation.
 
 ## Training/Evaluating a model 
 
