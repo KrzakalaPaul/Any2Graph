@@ -2,7 +2,7 @@
 
 ## What is Any2Graph ?
 
-When you want to train a model for a task where the **input** is graph, you can use a Graph Neural Network. But what about tasks where the **output** is a graph? This is where _Any2Graph_ comes into play!
+When you want to train a model for a task where the **input** is a graph, you can use a Graph Neural Network. But what about tasks where the **output** is a graph? This is where _Any2Graph_ comes into play!
 
 <p align="middle">
   <img src="/fig/GNNvsAny2Graph.png" width="600" />
@@ -18,14 +18,14 @@ Any2Graph is a framework composed of 1) a continuous graph representation, 2) an
 
 *Any2Graph* is a flexible framework that can be used to tackle a variety of **tasks**.  Different tasks have different modalities for instance different types of inputs  (images, text, graphs ...) or output graphs with different properties (no nodes features, discrete node features, continuous node features ...)
 
-The first step to use Any2Graph is always to choose a task. In practice, this means subclassing the base Task class defined in 
+The first step to use *Any2Graph* is always to choose a task. In practice, this means subclassing the base Task class defined in 
 ```
 Any2Graph/
 └── base_task_class.py
 ```
-We already provide 3 classes of tasks: Img2Graph, Sat2Graph and Fingerprint2Graph. Feel free to create new ones! 
+We already provide 3 classes of tasks: *Img2Graph*, *Sat2Graph* and *Fingerprint2Graph*. Feel free to create new ones! 
 
-Your new task will probably be organised like this:
+Your new task will probably be organized like this:
 ```
 Any2Graph/
 └── base_task_class.py
@@ -34,7 +34,7 @@ Any2Graph/
 	└── my_task.py <- Subclass Task here, remember to overwrite all methods
 	└── my_encoder.py <- Define your encoder here for the "get_encoder" method
 	└── Dataset1/ <- You can define one or several datasets for the "get_dataset" method
-	└── Dataset2/ <- 
+	└── Dataset2/ 
 ```
 
 ## Download Data 
@@ -68,7 +68,35 @@ You can also create your own Coloring Subset by running Coloring_Generate_Data.p
 
 ### USCities
 
+Download data from [20 US Cities dataset](https://github.com/songtaohe/Sat2Graph/tree/master/prepare_dataset). It should be organized as follows
+
+```
+Any2Graph/
+└── Sat2Graph
+	└── USCities
+		└── data/
+		    └── 20cities/
+```
+
+Then execute prepare_USCities.py (located in Any2Graph/Sat2Graph/USCities)
+
+```
+python prepare_USCities.py
+```
+
+
 ### QM9
+
+Download the smiles string of the molecules in QM9 from [QM9_smiles](https://github.com/songtaohe/Sat2Graph/tree/master/prepare_dataset). It should be organized as follows
+
+```
+Any2Graph/
+└── Fingerprint2Graph
+	└── QM9
+		└── data/
+		    └── QM9_smiles.csv
+```
+Then execute split_QM9.py (located in Any2Graph/Fingerprint2Graph/QM9) to split between train/test/validation.
 
 ### GDB13
 
