@@ -66,6 +66,17 @@ You can also create your own Coloring Subset by running Coloring_Generate_Data.p
 
 ### Toulouse
 
+Follow the instructions from the original [GitHub page](https://github.com/davide-belli/toulouse-road-network-dataset/tree/master). 
+The files should be organized as follows 
+
+```
+Any2Graph/
+└── Img2Graph
+	└── TOULOUSE
+		└── data/
+		    └── 0.001/
+```
+
 ### USCities
 
 Download data from [20 US Cities dataset](https://github.com/songtaohe/Sat2Graph/tree/master/prepare_dataset). It should be organized as follows
