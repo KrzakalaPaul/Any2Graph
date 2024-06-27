@@ -44,7 +44,7 @@ Any2Graph/
 _Coloring_ is a synthetic dataset that we introduce for benchmarking Any2Graph. See the illustration below (first row = input image, second row = target graph).
 
 <p align="middle">
-  <img src="/fig/coloring_inputs.png" width="700" />
+  <img src="/fig/Coloring_Inputs.png" width="700" />
 </p>
 
 To train a model on Coloring you need to add data in _Any2Graph/Img2Graph/Coloring/Data_ as below: 
