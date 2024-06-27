@@ -41,6 +41,29 @@ Any2Graph/
 
 ### Coloring
 
+_Coloring_ is a synthetic dataset that we introduce for benchmarking Any2Graph. See the illustration below (first row = input image, second row = target graph).
+
+<p align="middle">
+  <img src="/fig/coloring_inputs.png" width="700" />
+</p>
+
+To train a model on Coloring you need to add data in _Any2Graph/Img2Graph/Coloring/Data_ as below: 
+
+```
+Any2Graph/
+└── Img2Graph
+	└── Coloring
+		└── Data
+			└── small
+			└── medium
+
+```
+
+The small subset is composed of 100 000 Graph of size 5 to 10. The medium subset is composed of 200 000 Graph of size 10 to 15. They can be downloaded here: [small.zip](https://drive.google.com/file/d/1NcTNsvydlWO9I9BEjGm3ybIA5Wnpq4ga/view?usp=sharing), [medium.zip](https://drive.google.com/file/d/1NcTNsvydlWO9I9BEjGm3ybIA5Wnpq4ga/view?usp=sharing).
+
+You can also create your own Coloring Subset by running Coloring_Generate_Data.py and changing the parameters of ColoringSampler. 
+
+
 ### Toulouse
 
 ### USCities
