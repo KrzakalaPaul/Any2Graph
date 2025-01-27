@@ -59,7 +59,7 @@ Any2Graph/
 
 ```
 
-The small subset is composed of 100 000 Graph of size 5 to 10. The medium subset is composed of 200 000 Graph of size 10 to 15. They can be downloaded here: [small.zip](https://drive.google.com/file/d/1NcTNsvydlWO9I9BEjGm3ybIA5Wnpq4ga/view?usp=sharing), [medium.zip](https://drive.google.com/file/d/1NcTNsvydlWO9I9BEjGm3ybIA5Wnpq4ga/view?usp=sharing).
+The small subset is composed of 100 000 Graph of size 5 to 10. The medium subset is composed of 200 000 Graph of size 10 to 15. They can be downloaded here: [small.zip](https://drive.google.com/file/d/1NcTNsvydlWO9I9BEjGm3ybIA5Wnpq4ga/view?usp=sharing), [medium.zip](https://drive.google.com/file/d/1AMmKTL8cJsbnxNVJXaFvpUkRlnn8_gkh/view?usp=sharing).
 
 You can also create your own Coloring Subset by running Coloring_Generate_Data.py and changing the parameters of ColoringSampler. 
 
