@@ -64,7 +64,7 @@ The small subset is composed of 100 000 Graph of size 5 to 10. The medium subset
 ```bash
 cd Any2Graph/Img2Graph/Coloring
 python Coloring_Generate_Data --name small --train_size 100000 --Mmin 5 --Mmax 10
-python Coloring_Generate_Data --name medium --train_size 1300000 --Mmin 10 --Mmax 15
+python Coloring_Generate_Data --name medium --train_size 200000 --Mmin 10 --Mmax 15
 ```
 
 You can also create your own Coloring Subset by using different parameters.
