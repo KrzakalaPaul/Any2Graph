@@ -59,10 +59,33 @@ Any2Graph/
 
 ```
 
-The small subset is composed of 100 000 Graph of size 5 to 10. The medium subset is composed of 200 000 Graph of size 10 to 15. They can be downloaded here: [small.zip](https://drive.google.com/file/d/1NcTNsvydlWO9I9BEjGm3ybIA5Wnpq4ga/view?usp=sharing), [medium.zip](https://drive.google.com/file/d/1AMmKTL8cJsbnxNVJXaFvpUkRlnn8_gkh/view?usp=sharing).
+The small subset is composed of 100 000 Graph of size 5 to 10. The medium subset is composed of 200 000 Graph of size 10 to 15. You can build them by running 
 
-You can also create your own Coloring Subset by running Coloring_Generate_Data.py and changing the parameters of ColoringSampler. 
+```bash
+cd Any2Graph/Img2Graph/Coloring
+python Coloring_Generate_Data --name small --train_size 100000 --Mmin 5 --Mmax 10
+python Coloring_Generate_Data --name medium --train_size 1300000 --Mmin 10 --Mmax 15
+```
 
+You can also create your own Coloring Subset by using different parameters.
+
+### QM9
+
+To download QM9:
+
+```bash
+cd Any2Graph/Fingerprint2Graph/QM9
+sh download_QM9.sh
+```
+
+### GDB13
+
+To download GDB13:
+
+```bash
+cd Any2Graph/Fingerprint2Graph/GDB13
+sh download_GDB13.sh
+```
 
 ### Toulouse
 
@@ -91,32 +114,6 @@ Any2Graph/
 
 Then execute prepare_USCities.py (located in Any2Graph/Sat2Graph/USCities).
 
-
-### QM9
-
-Download the smiles string of the molecules in QM9 from [QM9_smiles](https://github.com/songtaohe/Sat2Graph/tree/master/prepare_dataset). It should be organized as follows
-
-```
-Any2Graph/
-└── Fingerprint2Graph
-	└── QM9
-		└── data/
-		    └── QM9_smiles.csv
-```
-Then execute split_QM9.py (located in Any2Graph/Fingerprint2Graph/QM9) to split between train/test/validation.
-
-### GDB13
-
-Download the smiles string of the molecules in GDB13 from [GDB13_smiles]([https://github.com/songtaohe/Sat2Graph/tree/master/prepare_dataset](https://zenodo.org/record/5172018/files/GDB13_Subset-ABCDEFGH.smi.gz?download=1)). It should be organized as follows
-
-```
-Any2Graph/
-└── Fingerprint2Graph
-	└── GDB13
-		└── data/
-		    └── GDB13_Subset-ABCDEFGH.smi
-```
-Then execute split_GDB13.py (located in Any2Graph/Fingerprint2Graph/GDB13) to split between train/test/validation.
 
 ## Training/Evaluating a model 
 

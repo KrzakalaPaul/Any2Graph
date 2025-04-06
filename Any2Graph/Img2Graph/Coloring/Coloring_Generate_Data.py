@@ -147,44 +147,30 @@ class ColoringSampler():
         return to_networkx(graph,node_attrs=['centroid','h','color'],edge_attrs=['edge_weight'],to_undirected=True)
 
 if __name__ == '__main__':
-    '''
-    ### Plot Some graphs
-    
-    sampler = ColoringSampler(Mmin=10,
-                              Mmax=15,
-                              node_weight_treshold=3,
-                              edge_weight_treshold=3)
-    
-    for _ in range(10):
-
-        img,graph = sampler.get_sample()
-        
-        print(img.shape)
-        print(graph.nodes(data=True))
-        
-        print(sampler.to_torch_geometric(graph).h)
-        print(sampler.to_torch_geometric(graph).edge_weight)
-        
-        fig,(ax1,ax2) = plt.subplots(ncols=2)
-        ax1.imshow(np.transpose(img,(1,0,2)),vmin=0,vmax=1,origin='lower')
-
-        color_map = [sampler.colors[node[1]['color']] for node in graph.nodes(data=True)]
-        pos = nx.get_node_attributes(graph, "centroid")
-        edges_weights = [graph[u][v]['edge_weight'] for u,v in graph.edges]
-        node_size = [500*node[1]['h'] for node in graph.nodes(data=True)]
-        nx.draw(graph, node_color = color_map, ax = ax2, pos=pos, width = edges_weights, node_size=node_size)
-        ax2.set_xlim(-0.1,1.1)
-        ax2.set_ylim(-0.1,1.1)
-
-        plt.show()
-        '''
-    ### Generate datasets
     
     import os
+    import argparse
+    import tqdm
+    
+    parser = argparse.ArgumentParser(description="Generate datasets for graph coloring.")
+    parser.add_argument("--name", type=str, default='small', help="Minimum number of nodes in the graph.")
+    parser.add_argument("--Mmin", type=int, default=4, help="Minimum number of nodes in the graph.")
+    parser.add_argument("--Mmax", type=int, default=10, help="Maximum number of nodes in the graph.")
+    parser.add_argument("--train_size", type=int, default=500, help="Number of training samples.")
+    parser.add_argument("--test_size", type=int, default=10, help="Number of test samples.")
+    parser.add_argument("--valid_size", type=int, default=10, help="Number of validation samples.")
+    args = parser.parse_args()
+
+    Mmin = args.Mmin
+    Mmax = args.Mmax
+    train_size = args.train_size
+    test_size = args.test_size
+    valid_size = args.valid_size
+
     
     name = 'coloring_small'
-    sampler = ColoringSampler(Mmin=4,
-                              Mmax=10,
+    sampler = ColoringSampler(Mmin=Mmin,
+                              Mmax=Mmax,
                               node_weight_treshold=3,
                               edge_weight_treshold=3,
                               )
@@ -193,7 +179,7 @@ if __name__ == '__main__':
         os.mkdir('data/'+name)
     
 
-    for split,n_samples in zip(['test','valid','train'],[10,10,500]):
+    for split,n_samples in zip(['test','valid','train'],[test_size,valid_size,train_size]):
 
         folder = 'data/'+name+'/'+split
         
@@ -203,7 +189,7 @@ if __name__ == '__main__':
         images = []
         graphs = []
                 
-        for k in range(n_samples):
+        for k in tqdm.tqdm(range(n_samples), desc=f"Generating {split} samples"):
             img,graph = sampler.get_sample(torch_geometric=True)
             img = img*255
             img = img.astype(np.uint8)

@@ -3,7 +3,7 @@
 dataset: "ColoringMedium"
 task: "Img2Graph"
 dataset_size: -1
-wandb: True
+wandb: False
 augment_data: True
 device: "cuda"
 
@@ -42,3 +42,4 @@ FD: True
 Hungarian: False
 mask_self_loops: False
 linear_matching: False
+symmetric: True

@@ -3,7 +3,7 @@ import random
 from sklearn.model_selection import train_test_split
 random.seed(0)
 
-path = 'data/GDB13_Subset-ABCDEFGH.smi'
+path = 'data/GDB13.smi'
 
 df = pd.read_csv(path)
 

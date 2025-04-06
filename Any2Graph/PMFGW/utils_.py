@@ -46,7 +46,7 @@ def init_matrix_quad_batch(A_logits,A,w,alpha,mask_self_loops=False):
         ww = w[:,:,None]*w[:,None,:]
         hC2 = alpha*h2(A)*ww
             
-        constC = alpha*w*bmv(f2(A),w)/n
+        constC = alpha*w*bmv(f2(A).transpose(1,2),w)/n
         constC  = constC[:,None,:]
         
         fC1 = alpha*f1(A_logits)
@@ -81,9 +81,12 @@ def tensor_product_quad(L,G,mask_self_loops=False):
         constC, fC1, hC1, hC2, w = L
         return constC + np.outer(np.dot(fC1, np.dot(G,w)),w) - np.dot(np.dot(hC1, G), hC2.T)
     
-def line_search(M, L, Gprev, G, costprev, mask_self_loops=False):
+def line_search(M, L, Gprev, G, costprev, Lt=None, mask_self_loops=False, symmetric=True):
     delta_G = G-Gprev
-    dot = tensor_product_quad(L,delta_G,mask_self_loops=mask_self_loops)
+    if Lt is None:
+        dot = tensor_product_quad(L,delta_G,mask_self_loops=mask_self_loops)
+    else:
+        dot = 0.5*(tensor_product_quad(L,delta_G,mask_self_loops=mask_self_loops)+tensor_product_quad(Lt,delta_G,mask_self_loops=mask_self_loops))
     a = np.sum(delta_G*dot)
     b = np.sum(M * delta_G) + 2*np.sum(dot * Gprev)
     t = solve_1d_linesearch_quad(a,b)
@@ -108,7 +111,33 @@ def solver_linear_batch(M,max_iter_inner,log=True):
     
     return Gs,log_solver
             
-def solver_quad_batch(M, L, max_iter, tol, max_iter_inner, Hungarian=False, mask_self_loops=False, log=False):
+def solver_quad(M, L, cost, max_iter, tol, max_iter_inner, Lt=None, mask_self_loops=False, log=False):
+    
+    n,m = M.shape
+    G = np.ones((n,m),dtype=np.float32)/(n*m)  
+        
+    for ii in range(max_iter):
+        Gprev = G
+        costprev = cost
+        
+        if Lt is None:
+            M_ii = 2*tensor_product_quad(L,G,mask_self_loops=mask_self_loops) + M
+        else:
+            M_ii = tensor_product_quad(L,G,mask_self_loops=mask_self_loops) + tensor_product_quad(Lt,G,mask_self_loops=mask_self_loops) + M
+        
+        G,log = emd(M=M_ii,a=[],b=[],numItermax=max_iter_inner,log=True)
+
+        G,cost = line_search(M,L,Gprev,G,costprev,mask_self_loops=mask_self_loops,Lt=Lt)
+        
+        if abs(costprev-cost) < tol:
+            break
+        
+    lg = {'n_cg_iter':ii+1,'cost':cost}
+    if log:
+        return G,lg
+    return G 
+
+def solver_quad_batch(M, L, max_iter, tol, max_iter_inner, Lt=None , Hungarian=False, mask_self_loops=False, log=False):
     
     B,n,m = M.shape
     
@@ -119,18 +148,20 @@ def solver_quad_batch(M, L, max_iter, tol, max_iter_inner, Hungarian=False, mask
     
     M = M.cpu().detach().numpy()
     L = [ matrix.cpu().detach().numpy() for matrix in L]
+    Lt = [ matrix.cpu().detach().numpy() for matrix in Lt] if Lt is not None else None
     cost_init = cost_init.cpu().detach().numpy()
     
     Gs = []
     avg_cg_iter = 0
     for k in range(B):
+        Mk = M[k]
+        Lk = [matrix[k] for matrix in L]
+        Lkt = [matrix[k] for matrix in Lt] if Lt is not None else None
         if log:
-            Mk = M[k]
-            Lk = [matrix[k] for matrix in L]
-            G,log = solver_quad(Mk,Lk,cost_init[k],max_iter,tol,max_iter_inner, mask_self_loops=mask_self_loops, log=log)
+            G,log = solver_quad(Mk,Lk,cost_init[k],max_iter,tol,max_iter_inner, mask_self_loops=mask_self_loops, log=log,Lt=Lkt)
             avg_cg_iter += log['n_cg_iter']
         else:
-            G = solver_quad(Mk,Lk,cost_init[k],max_iter,tol,max_iter_inner, mask_self_loops=mask_self_loops, log=log)
+            G = solver_quad(Mk,Lk,cost_init[k],max_iter,tol,max_iter_inner, mask_self_loops=mask_self_loops, log=log,Lt=Lkt)
         if Hungarian:
             G = hungarian(G)/n
         Gs.append(G)
@@ -142,25 +173,3 @@ def solver_quad_batch(M, L, max_iter, tol, max_iter_inner, Hungarian=False, mask
 
 
 
-def solver_quad(M, L, cost, max_iter, tol, max_iter_inner, mask_self_loops=False, log=False):
-    
-    n,m = M.shape
-    G = np.ones((n,m),dtype=np.float32)/(n*m)  
-        
-    for ii in range(max_iter):
-        Gprev = G
-        costprev = cost
-        
-        M_ii = 2*tensor_product_quad(L,G,mask_self_loops=mask_self_loops) + M
-        
-        G,log = emd(M=M_ii,a=[],b=[],numItermax=max_iter_inner,log=True)
-
-        G,cost = line_search(M,L,Gprev,G,costprev,mask_self_loops=mask_self_loops)
-        
-        if abs(costprev-cost) < tol:
-            break
-        
-    lg = {'n_cg_iter':ii+1,'cost':cost}
-    if log:
-        return G,lg
-    return G 

@@ -30,7 +30,7 @@ class Img2Graph(Task):
         '''
         Get Dataset
         '''
-        return ColoringDataset(root_path='Img2Graph/Coloring/data/',subset=self.subset,split=split,augment_data=config['augment_data'],dataset_size=config['dataset_size'])
+        return ColoringDataset(root_path='Any2Graph/Img2Graph/Coloring/data/',subset=self.subset,split=split,augment_data=config['augment_data'],dataset_size=config['dataset_size'])
     
     def get_encoder(self):
         '''

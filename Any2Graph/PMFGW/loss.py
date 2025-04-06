@@ -21,6 +21,7 @@ class PMFGW():
         self.mask_self_loops = config['mask_self_loops']
         self.linear_matching = config['linear_matching']
         self.task = task
+        self.symmetric = config['symmetric']
 
         
     def __call__(self,continuous_predictions, padded_targets, batch_average = True):
@@ -59,13 +60,17 @@ class PMFGW():
             
         # Init Cost matrix A
         L = init_matrix_quad_batch(A_logits=A_logits,A=A,w=weights,alpha=self.alpha_A,mask_self_loops=self.mask_self_loops)
-
+        if self.symmetric:
+            Lt = None
+        else:
+            Lt = init_matrix_quad_batch(A_logits=A_logits.transpose(1,2),A=A.transpose(1,2),w=weights,alpha=self.alpha_A,mask_self_loops=self.mask_self_loops)
+            
         # Get OT plan 
         with torch.no_grad():
             if self.linear_matching:
                 T,log_solver = solver_linear_batch(M=M,max_iter_inner=self.max_iter_inner,log=True)
             else:
-                T,log_solver = solver_quad_batch(M=M,L=L,max_iter=self.max_iter,tol=self.tol,max_iter_inner=self.max_iter_inner,mask_self_loops=self.mask_self_loops,Hungarian=self.Hungarian,log=True)
+                T,log_solver = solver_quad_batch(M=M,L=L,Lt=Lt,max_iter=self.max_iter,tol=self.tol,max_iter_inner=self.max_iter_inner,mask_self_loops=self.mask_self_loops,Hungarian=self.Hungarian,log=True)
             T = T.to(device=M.device)
             
         if batch_average:

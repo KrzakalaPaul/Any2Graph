@@ -42,4 +42,4 @@ FD: False
 Hungarian: False
 mask_self_loops: False
 linear_matching: False
-
+symmetric: True

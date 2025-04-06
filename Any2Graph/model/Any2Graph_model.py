@@ -21,6 +21,7 @@ class Decoder(nn.Module):
         self.virtual_node = config['virtual_node']
         self.Mmax = config['Mmax']
         self.FD = config['FD']
+        self.symmetric = config['symmetric']
         
         self.head_h = MLP(input_dim=model_dim,hidden_dim=2*model_dim,output_dim=1,num_layers=MLP_h_layers,dropout=dropout)
         self.head_F = MLP(input_dim=model_dim,hidden_dim=2*model_dim,output_dim=node_feature_dim,num_layers=MLP_F_layers,dropout=dropout)
@@ -28,7 +29,7 @@ class Decoder(nn.Module):
         input_dim1 = 2*model_dim if self.virtual_node else model_dim
         self.head_A_1 = MLP(input_dim=input_dim1,hidden_dim=2*model_dim,output_dim=model_dim,num_layers=MLP_A_layers,dropout=dropout)
                                         
-        input_dim2 = model_dim 
+        input_dim2 = model_dim if self.symmetric else 2*model_dim
         self.head_A_2 = MLP(input_dim=input_dim2,hidden_dim=model_dim//2,output_dim=1,num_layers=MLP_A_layers,dropout=dropout)  
           
         if self.FD is not None:
@@ -49,7 +50,12 @@ class Decoder(nn.Module):
         else:
             x = true_nodes
         x = self.head_A_1(x)
-        A_logits = self.head_A_2(x[:,None,:,:] + x[:,:,None,:])
+        if self.symmetric:
+            E = x[:,:,None,:] + x[:,None,:,:]
+            A_logits = self.head_A_2(E)
+        else:
+            E = torch.concatenate((x.unsqueeze(1).expand(-1,self.Mmax,-1,-1),x.unsqueeze(2).expand(-1,-1,self.Mmax,-1)),dim=-1)
+            A_logits = self.head_A_2(E)
         
         A_logits = A_logits.squeeze()
             
